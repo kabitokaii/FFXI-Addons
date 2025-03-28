@@ -42,6 +42,9 @@ luac.out
 #folders
 Silmaril
 CurePlease_Addon
+data
 
 # Configuration files
 settings.xml
+findAll/data/*
+findAll/data/Sietch.lua
