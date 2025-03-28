@@ -1,0 +1,106 @@
+<?xml version="1.1" ?>
+<settings>
+    <global>
+        <autoupdate>true</autoupdate>
+        <blinking>
+            <all>
+                <always>true</always>
+                <combat>true</combat>
+                <target>true</target>
+            </all>
+            <follow>
+                <always>false</always>
+                <combat>false</combat>
+                <target>false</target>
+            </follow>
+            <others>
+                <always>false</always>
+                <combat>false</combat>
+                <target>false</target>
+            </others>
+            <party>
+                <always>false</always>
+                <combat>false</combat>
+                <target>false</target>
+            </party>
+            <self>
+                <always>false</always>
+                <combat>false</combat>
+                <target>false</target>
+            </self>
+        </blinking>
+        <cantrelle>
+            <race>6</race>
+        </cantrelle>
+        <ellari>
+            <race>6</race>
+        </ellari>
+        <ginee>
+            <race>6</race>
+        </ginee>
+        <kabitokaii>
+
+        </kabitokaii>
+        <kittycatt>
+            <race>6</race>
+        </kittycatt>
+        <kolev>
+            <race>6</race>
+        </kolev>
+        <lucy>
+            <race>6</race>
+        </lucy>
+        <luvy>
+            <race>6</race>
+        </luvy>
+        <oberoon>
+            <race>5</race>
+        </oberoon>
+        <others>
+            <race>5</race>
+        </others>
+        <profiles>
+            <taru>
+
+            </taru>
+        </profiles>
+        <replacements>
+            <body>
+
+            </body>
+            <face>
+
+            </face>
+            <feet>
+
+            </feet>
+            <hands>
+
+            </hands>
+            <head>
+
+            </head>
+            <legs>
+
+            </legs>
+            <main>
+
+            </main>
+            <race>
+
+            </race>
+            <ranged>
+
+            </ranged>
+            <sub>
+
+            </sub>
+        </replacements>
+        <sietch>
+            <race>5</race>
+        </sietch>
+        <xicu>
+            <race>6</race>
+        </xicu>
+    </global>
+</settings>

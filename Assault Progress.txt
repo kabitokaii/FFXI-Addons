@@ -1,0 +1,59 @@
+<!--Leujaoam Sanctum-->
+|Leujaoam Cleansing = 
+|Orichalcum Survey =
+|Escort Professor Chanoix = X
+|Shanarha Grass Conservation =
+|Counting Sheep =
+|Supplies Recovery =
+|Azure Experiments =
+|Imperial Code =
+|Red Versus Blue =
+|Bloody Rondo =
+
+<!--Mamool Ja Training Grounds-->
+|Imperial Agent Rescue = 
+|Preemptive Strike = 
+|Sagelord Elimination = X
+|Breaking Morale = 
+|The Double Agent = 
+|Imperial Treasure Retrieval = 
+|Blitzkrieg = 
+|Marids in the Mist = 
+|Azure Ailments = 
+|The Susanoo Shuffle = 
+
+<!--Lebros Cavern-->
+|Excavation Duty =
+|Lebros Supplies = 
+|Troll Fugitives = x
+|Evade and Escape = 
+|Siegemaster Assassination = 
+|Apkallu Breeding = 
+|Wamoura Farm Raid = 
+|Egg Conservation = 
+|Operation: Black Pearl = 
+|Better Than One = 
+
+<!--Periqia-->
+|Seagull Grounded = 
+|Requiem =
+|Saving Private Ryaaf = x
+|Shooting Down the Baron =
+|Building Bridges =
+|Stop the Bloodshed =
+|Defuse the Threat =
+|Operation: Snake Eyes =
+|Wake the Puppet =
+|The Price is Right =
+
+<!--Ilrusi Atoll-->
+|Golden Salvage = 
+|Lamia No.13 = 
+|Extermination = x
+|Demolition Duty = 
+|Searat Salvation = 
+|Apkallu Seizure =
+|Lost and Found = 
+|Deserter =
+|Desperately Seeking Cephalopods = 
+|Bellerophon's Bliss = 

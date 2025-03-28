@@ -1,0 +1,6 @@
+//ku add selfja Haste_Samba 189 370 216 in
+//ku add cureda Curing_Waltz_III 192 187 all 50
+//ku add selfja Samurai_Roll 109 321 193 in
+//ku add selfja Hunter's_Roll 108 320 193 in
+//ku add selfja Corsair's_Roll 114 326 193 in
+//ku add selfja Chaos_Roll 103 317 193 in

@@ -1,0 +1,17 @@
+sets.exported={
+    main={ name="Rostam", augments={'Path: C',}},
+    range="Compensator",
+    ammo="Titanium Bullet",
+    head={ name="Lanun Tricorne +3", augments={'Enhances "Winning Streak" effect',}},
+    body="Meg. Cuirie +1",
+    hands="Mummu Wrists +1",
+    legs="Meg. Chausses +1",
+    feet="Hermes' Sandals",
+    neck="Comm. Charm +2",
+    waist="Gerdr Belt",
+    left_ear="Mache Earring +1",
+    right_ear="Ishvara Earring",
+    left_ring="Barataria Ring",
+    right_ring="Luzaf's Ring",
+    back="Camulus's Mantle",
+}

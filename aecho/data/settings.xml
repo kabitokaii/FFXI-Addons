@@ -1,0 +1,8 @@
+<?xml version="1.1" ?>
+<settings>
+    <global>
+        <alttrack>true</alttrack>
+        <buffs>parsimony,charm,inhibit tp,vit down,perpetuance,petrified,hp max down,slow,drown,attack down,disease,penury,burn,chr down,tp max down,ebullience,defense down,alacrity,dark arts,evasion down,flash,paralyze,silence,addle,agi down,blind,amnesia,kaustra,gravity,bio,mute,mnd down,manifestation,weakness,addendum: white,accuracy down,addendum: black,magic attack down,magic accuracy down,sleep,poison,light arts,dia,rasp,str down,stun,accession,frost,mp max down,doom,shock,bind,immanence,dex down,int down,rapture,celerity,helix,plague,magic defense down,curse,zombie,bane,terror,magic evasion down</buffs>
+        <sitrack>true</sitrack>
+    </global>
+</settings>

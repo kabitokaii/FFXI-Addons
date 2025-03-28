@@ -1,0 +1,18 @@
+sets.exported={
+    main="Naegling",
+    sub={ name="Gleti's Knife", augments={'Path: A',}},
+    range={ name="Anarchy +2", augments={'Delay:+60','TP Bonus +1000',}},
+    ammo="Eminent Bullet",
+    head={ name="Nyame Helm", augments={'Path: B',}},
+    body="Councilor's Garb",
+    hands={ name="Nyame Gauntlets", augments={'Path: B',}},
+    legs={ name="Nyame Flanchard", augments={'Path: B',}},
+    feet={ name="Nyame Sollerets", augments={'Path: B',}},
+    neck="Sanctity Necklace",
+    waist="Reiki Yotai",
+    left_ear="Eabani Earring",
+    right_ear="Ishvara Earring",
+    left_ring="Petrov Ring",
+    right_ring="Epaminondas's Ring",
+    back={ name="Camulus's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%','Mag. Evasion+15',}},
+}

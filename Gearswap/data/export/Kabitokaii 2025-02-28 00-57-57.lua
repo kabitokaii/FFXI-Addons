@@ -1,0 +1,17 @@
+sets.exported={
+    main={ name="Rostam", augments={'Path: C',}},
+    range="Compensator",
+    ammo="Eminent Bullet",
+    head="Nyame Helm",
+    body="Nyame Mail",
+    hands="Nyame Gauntlets",
+    legs="Nyame Flanchard",
+    feet="Nyame Sollerets",
+    neck="Cuamiz Collar",
+    waist="Reiki Yotai",
+    left_ear="Eabani Earring",
+    right_ear="Ishvara Earring",
+    left_ring="Bomb Queen Ring",
+    right_ring="Eihwaz Ring",
+    back="Moonbeam Cape",
+}

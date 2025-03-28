@@ -1,0 +1,18 @@
+sets.exported={
+    main="Naegling",
+    sub="Gleti's Knife",
+    range={ name="Anarchy +2", augments={'Delay:+60','TP Bonus +1000',}},
+    ammo="Eminent Bullet",
+    head={ name="Adhemar Bonnet +1", augments={'STR+12','DEX+12','Attack+20',}},
+    body={ name="Adhemar Jacket +1", augments={'DEX+12','AGI+12','Accuracy+20',}},
+    hands={ name="Adhemar Wrist. +1", augments={'STR+12','DEX+12','Attack+20',}},
+    legs={ name="Samnuha Tights", augments={'STR+10','DEX+10','"Dbl.Atk."+3','"Triple Atk."+3',}},
+    feet={ name="Herculean Boots", augments={'Accuracy+9','Weapon skill damage +3%','STR+6','Attack+6',}},
+    neck="Sanctity Necklace",
+    waist="Reiki Yotai",
+    left_ear="Eabani Earring",
+    right_ear="Mache Earring +1",
+    left_ring="Petrov Ring",
+    right_ring="Chirich Ring +1",
+    back={ name="Camulus's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%','Mag. Evasion+15',}},
+}
