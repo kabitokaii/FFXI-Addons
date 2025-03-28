@@ -65,11 +65,18 @@ function save_character_data(char_name, data)
     -- Use standard Windower config.save for character data
     local status, err = pcall(function()
         windower.add_to_chat(8, 'Gil Keeper: Saving character data for ' .. char_name)
-        config.save(data, 'data/' .. config_name .. '.xml')
+        -- Load the config object first (this creates the file if needed)
+        local char_config = config.load('data/' .. config_name .. '.xml', char_defaults)
+        -- Update it with our new data
+        for k, v in pairs(data) do
+            char_config[k] = v
+        end
+        -- Save it with explicit character name (or 'all')
+        config.save(char_config, 'all')
     end)
     
     if not status then
-        windower.add_to_chat(167, 'Gil Keeper: Error saving character data: ' .. tostring(err))
+        windower.add_to_chat(8, 'Gil Keeper: Error saving character data: ' .. tostring(err))
     end
 end
 
@@ -227,7 +234,7 @@ windower.register_event('addon command', function(command, ...)
         display_help()
     elseif command == 'debug' then
         settings.debug = not settings.debug
-        config.save(settings) -- Direct call instead of save_settings()
+        config.save(settings, 'all')
         windower.add_to_chat(6, 'Gil Keeper: Debug mode ' .. (settings.debug and 'enabled' or 'disabled'))
     elseif command == 'status' then
         local all_chars = get_all_characters()
@@ -308,7 +315,7 @@ function migrate_old_data()
             update_current_character(char_name, gil)
         end
         settings.characters = {}
-        config.save(settings) -- Direct call instead of save_settings()
+        config.save(settings, 'all')
         windower.add_to_chat(6, 'Gil Keeper: Migration complete')
     end
 end
