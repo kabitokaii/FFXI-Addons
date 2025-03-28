@@ -30,14 +30,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 autoMB will cast elements for magic bursts automatically
 job/level is pulled from game and appropriate elements are used
 
-single bursting only for now, but double may me introduced later
-
+single bursting only for now, but double may be introduced later
 ]]
-_addon.version = '1.1.2'
+_addon.version = '1.1.3'
 _addon.name = 'autoMB'
 _addon.author = 'Ekrividus'
 _addon.commands = {'autoMB','amb'}
-_addon.lastUpdate = '4/2/2022'
+_addon.lastUpdate = '2025'
 _addon.windower = '4'
 
 require 'tables'
@@ -59,7 +58,7 @@ defaults.check_day = false -- Whether or not to use day bonus spell
 defaults.check_weather = false -- Whether or not to use weather bonus, probably turn on if storms are being used
 defaults.useAOE = false -- Whether or not to use AOE elements
 defaults.cast_delay = 0.25 -- Delay from when skillchain occurs to when first spell is cast
-defaults.double_burst = false -- Not implemented yet
+defaults.double_burst = false -- Whether or not to attempt a double burst
 defaults.double_burst_delay = 1 -- Time from when first spell starts casting to when second spell starts casting
 defaults.mp = 100 -- Don't burst if it will leave you below this mark
 defaults.cast_type = 'spell' -- Type of MB spell|jutsu|helix|ga|ja|ra
@@ -68,8 +67,6 @@ defaults.step_down = 0 -- Step down a tier for double bursts (0: Never, 1: If ta
 defaults.gearswap = false -- Tell gearswap when we're bursting
 defaults.change_target = true -- Swap targets automatically for MBs
 defaults.cast_range = 22 -- Maximum range for target to be recognized
-
--- Newly added setting
 defaults.disable_on_zone = false -- Disable when zoning
 
 settings = config.load(defaults)
@@ -221,7 +218,7 @@ function show_status()
 end
 
 function buff_active(id)
-    if T(windower.ffxi.get_player().buffs):contains(BuffID) == true then
+    if T(windower.ffxi.get_player().buffs):contains(id) == true then
         return true
     end
     return false
@@ -495,7 +492,9 @@ function do_burst(target, skillchain, second_burst, last_spell)
 	
 	is_bursting = true
 	local cast_delay = math.random(0.1, settings.cast_delay)
-	coroutine.schedule(cast_spell:prepare(spell, target), target_delay + cast_delay)
+	
+	-- Fix for Lua 5.1 compatibility - don't use :prepare syntax
+	coroutine.schedule(function() cast_spell(spell, target) end, target_delay + cast_delay)
 
 	if (settings.double_burst and not second_burst) then
 		debug_message("Setting up double burst")
@@ -505,7 +504,7 @@ function do_burst(target, skillchain, second_burst, last_spell)
 			return
 		end
 		local d = cast_time + settings.double_burst_delay + target_delay + 1
-		coroutine.schedule(do_burst:prepare(target, skillchain, true, spell), d)
+		coroutine.schedule(function() do_burst(target, skillchain, true, spell) end, d)
 	else
 		local cast_time = res.spells:with('name', spell) and res.spells:with('name', spell).cast_time or nil
 		if (cast_time == nil) then
@@ -609,7 +608,8 @@ windower.register_event('incoming chunk', function(id, packet, data, modified, i
 					if (t.distance:sqrt() < settings.cast_range) then
 						debug_message("Skillchain effect detected on "..t.name)
 						last_skillchain = skillchains[action.add_effect_message]
-						coroutine.schedule(do_burst:prepare(t, last_skillchain, false, '', 0), settings.cast_delay + is_busy)
+						-- Fix for Lua 5.1 compatibility - don't use :prepare syntax
+						coroutine.schedule(function() do_burst(t, last_skillchain, false, '', 0) end, settings.cast_delay + is_busy)
 					else
 						debug_message("Target ("..t.name..") out of range "..t.distance:sqrt().."' Max MB Range: "..settings.cast_range.."'")
 					end
@@ -645,7 +645,9 @@ end)
 
 -- Stop checking if logout happens or zoning and disable on zone is true
 windower.register_event('zone change', 'logout', function(...)
-	windower.send_command('autoMB off')
+	if settings.disable_on_zone then
+		windower.send_command('autoMB off')
+	end
 	player = nil
 	return
 end)
@@ -742,8 +744,8 @@ windower.register_event('addon command', function(...)
 		return
 	elseif (cmd == 'frequency' or cmd == 'f') then
 		local n = tonumber(arg[2])
-		if (n == nil or n < 0) then
-			windower.add_to_chat(207, "Usage: autoMB (f)requency #")
+		if (n == nil or n <= 0) then
+			windower.add_to_chat(207, "Usage: autoMB (f)requency # (must be > 0)")
 			return
 		end
 		settings.frequency = n
@@ -798,7 +800,7 @@ windower.register_event('addon command', function(...)
         end
 		
 		if (what == 'elements' or what == 'element' or what == 'all') then
-			if (toggle == 'toggle') then
+			if (toggle == '' or toggle == 'toggle') then
 				settings.show_elements = not settings.show_elements
 			else
 				settings.show_elements = (toggle == 'on')
@@ -807,7 +809,7 @@ windower.register_event('addon command', function(...)
         end
 
 		if (what == 'weather' or what == 'bonus' or what == 'all') then
-			if (toggle == 'toggle') then
+			if (toggle == '' or toggle == 'toggle') then
 				settings.show_bonus_elements = not settings.show_bonus_elements
 			else
 				settings.show_bonus_elements = (toggle == 'on')
@@ -816,7 +818,7 @@ windower.register_event('addon command', function(...)
         end
 
 		if (what == 'spell' or what == 'sp' or what == 'all') then
-			if (toggle == 'toggle') then
+			if (toggle == '' or toggle == 'toggle') then
 				settings.show_spell = not settings.show_spell
 			else
 				settings.show_spell = (toggle == 'on')
@@ -859,8 +861,8 @@ windower.register_event('addon command', function(...)
 		settings:save()
 		return
 	elseif (cmd == 'zone' or cmd == 'z') then
-		settings.disable_on_zone = settings.disable_on_zone and (not settings.disable_on_zone) or true
-		message("Auto MB will be "..(settings.disable_on_zone and 'enabled' or 'disabled').." when zoning.")
+		settings.disable_on_zone = not settings.disable_on_zone
+		message("Auto MB will "..(settings.disable_on_zone and 'be disabled' or 'remain enabled').." when zoning.")
 		settings:save()
 		return
 	elseif (cmd == 'debug') then

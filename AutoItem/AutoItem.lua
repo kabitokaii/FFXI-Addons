@@ -8,19 +8,19 @@ require('strings')
 require('logger')
 require('sets')
 require('lists')
-packets = require('packets')
-chat = require('chat')
-res = require('resources')
+local packets = require('packets')
+local chat = require('chat')
+local res = require('resources')
 
-active = true
-panacea = true
-job_registry = T{}
-panacea_buffs = S{13,129,133,134,136,138,139,140,141,144,145,146,147,148,149,167,564}	-- Slow, Frost, Drown, STR Down, VIT Down,INT Down, AGI Down, MND Down, Dia, Max HP Down, Max MP Down, Accuracy Down, Attack Down, Evasion Down, Defense Down, Magic Def. Down, Magic Evasion Down,
-dot_buffs = S{128,129,130,131,132,133}
-remedy_buffs = S{3,4,8}	-- Paralysis, Disease
-holywater_buffs = S{9}	-- Curse
-allbuffs = remedy_buffs:union(panacea_buffs):union(holywater_buffs):union(dot_buffs)
-active_buffs = S{}
+local active = true
+local panacea = true
+local panacea_buffs = S{13,129,133,134,136,138,139,140,141,144,145,146,147,148,149,167,564}	-- Slow, Frost, Drown, STR Down, VIT Down,INT Down, AGI Down, MND Down, Dia, Max HP Down, Max MP Down, Accuracy Down, Attack Down, Evasion Down, Defense Down, Magic Def. Down, Magic Evasion Down,
+local dot_buffs = S{128,129,130,131,132,133}
+local remedy_buffs = S{3,4,8}	-- Paralysis, Disease
+local holywater_buffs = S{9}	-- Curse
+local allbuffs = remedy_buffs:union(panacea_buffs):union(holywater_buffs):union(dot_buffs)
+local active_buffs = S{}
+local isCasting = false
 
 local __bags = {}
 local getBagType = function(access, equippable)
@@ -32,13 +32,13 @@ do -- Setup Bags.
 end
 
 local attempt = 0
-function use_meds_check()
-
+local function use_meds_check()
 	if not active_buffs then return end
 	local player = windower.ffxi.get_player()
+	if not player then return end
 
 	-- Remedy debuffs
-    for buff_id,_ in pairs (active_buffs) do
+    for buff_id,_ in pairs(active_buffs) do
 		if remedy_buffs:contains(buff_id) and active and player.main_job ~= 'WHM' and (os.time()-attempt) > 4 then
 			if haveBuff(buff_id) and haveMeds(4155) then
 				windower.add_to_chat(6,"[AutoItem] Using Remedy.")
@@ -80,7 +80,8 @@ function haveMeds(med_id)
 		end
 	end
 	
-	windower.add_to_chat(3, '[AutoItem] <<NO>> -' .. res.items[med_id].en .. '- Found!')
+	local item_name = res.items[med_id] and res.items[med_id].en or "Unknown Item"
+	windower.add_to_chat(3, '[AutoItem] <<NO>> -' .. item_name .. '- Found!')
 	return false
 end
 
@@ -99,22 +100,21 @@ end
 local last_render = 0
 local delay = 0.5
 windower.register_event('prerender', function()
-
-  if (os.clock()-last_render) > delay then
-    use_meds_check()
-    last_render = os.clock()
-
-  end
-
+	if (os.clock()-last_render) > delay then
+		use_meds_check()
+		last_render = os.clock()
+	end
 end)
 
 function handle_lose_buff(buff_id)
 	if buff_id and allbuffs:contains(buff_id) then
 		active_buffs:remove(buff_id)
+		local buff_name = res.buffs[buff_id] and res.buffs[buff_id].en or tostring(buff_id)
+		
 		if panacea and active and (panacea_buffs:contains(buff_id) or dot_buffs:contains(buff_id)) then
-			windower.add_to_chat(13,'[AutoItem] Debuff removed: ' .. res.buffs[buff_id].en .. ' - '..'['..buff_id..']')
+			windower.add_to_chat(13,'[AutoItem] Debuff removed: ' .. buff_name .. ' - [' .. buff_id .. ']')
 		elseif active and (remedy_buffs:contains(buff_id) or holywater_buffs:contains(buff_id)) then
-			windower.add_to_chat(13,'[AutoItem] Debuff removed: ' .. res.buffs[buff_id].en .. ' - '..'['..buff_id..']')
+			windower.add_to_chat(13,'[AutoItem] Debuff removed: ' .. buff_name .. ' - [' .. buff_id .. ']')
 		end
 	end
 end	
@@ -136,10 +136,12 @@ function handle_incoming_chunk(id, data)
 			if buff > 0 and buff ~= 255 and allbuffs:contains(buff) then
 				if math.ceil(1009810800 + (our_time / 60) + 0x100000000 / 60 * 9) - os.time() > 5 then
 					if not (active_buffs:contains(buff)) then
+						local buff_name = res.buffs[buff] and res.buffs[buff].en or tostring(buff)
+						
 						if panacea and active and panacea_buffs:contains(buff) then
-							windower.add_to_chat(1, string.format("%s", ("[AutoItem] Debuff detected: %s - [%s]"):format(res.buffs[buff].en, buff):color(39)))
+							windower.add_to_chat(1, string.format("[AutoItem] Debuff detected: %s - [%s]", buff_name, buff):color(39))
 						elseif active and (remedy_buffs:contains(buff) or holywater_buffs:contains(buff)) then
-							windower.add_to_chat(1, string.format("%s", ("[AutoItem] Debuff detected: %s - [%s]"):format(res.buffs[buff].en, buff):color(39)))
+							windower.add_to_chat(1, string.format("[AutoItem] Debuff detected: %s - [%s]", buff_name, buff):color(39))
 						end
 						active_buffs:add(buff)
 					end

@@ -33,7 +33,6 @@ zones.ah = L{'Bastok Mines', 'Bastok Markets', 'Norg', 'Southern San d\'Oria', '
 zones.mh = {}
 
 function timef(ts)
-    --return string.format('%.2d:%.2d:%.2d',ts/(60*60), ts/60%60, ts%60);
     return string.format('%d days %.2d:%.2d:%.2d',ts/(60*60*24), ts/(60*60)%24, ts/60%60, ts%60);
 end;
 
@@ -76,8 +75,6 @@ windower.register_event('prerender', function()
     if auction_box and settings.auction_list.display then
         auction_list:text(display_box())
         auction_list:show()
-    --else
-    --	auction_list:hide()
     end
 end)
 
@@ -137,12 +134,10 @@ windower.register_event('unhandled command', function(...)
         if (commands[1] == 'outbox' or commands[1] == 'obox') then	
             lclock = now+3
             local obox = string.char(0x4B,0x0A,0x00,0x00,0x0D,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x01,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF)
-            --print('Modified packet 0x04B: %s\n%s bytes':format(space_hex(obox:hex()),#obox))
             windower.packets.inject_incoming(0x4B,obox)
         elseif (commands[1] == 'inbox' or commands[1] == 'ibox') then
             lclock = now+3
             local ibox = string.char(0x4B,0x0A,0x00,0x00,0x0E,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0x01,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF)
-            --print('Modified packet 0x04B: %s\n%s bytes':format(space_hex(ibox:hex()),#ibox))
             windower.packets.inject_incoming(0x4B,ibox)
         elseif (commands[1] == 'buy' or commands[1] == 'sell') and commands[4] then
             if ah_proposal(commands[1],table.concat(commands, ' ',2,#commands-2):lower(),commands[#commands-1]:lower(),commands[#commands]) then lclock = now+3 end
@@ -168,10 +163,9 @@ function update_sales_status(packet)
             auction_box[packet.Slot].item = packet['Item']
             auction_box[packet.Slot].count = packet['Count']
             auction_box[packet.Slot].name = res_items[packet['Item']].en
-            --auction_box[packet.Slot].category = packet['AH Category']
         end
     end
-end	--packet['Name'])
+end
 
 function find_empty_slot()
     if auction_box then
@@ -184,50 +178,74 @@ function find_empty_slot()
     return nil
 end
 
-function bazaar_item(item_name,price)
+function bazaar_item(item_name, price)
     if not windower.ffxi.get_player() then return end
     local item = get_item_res(item_name)
     if not item then 
-        print('AH Error: %s not a valid item name.':format(item_name)) 
+        print(('AH Error: %s not a valid item name.'):format(item_name)) 
         return false
     end
     if item.flags['No PC Trade'] == true or item.flags['Linkshell'] == true then 
-        print(item.flags)
+        print('AH Error: Item cannot be traded.')
         return false
     end
     price = format_price(price)
-    if not price or price > 99999999 then print('AH Error: Invalid price.') return false end
+    if not price or price > 99999999 then 
+        print('AH Error: Invalid price.') 
+        return false 
+    end
     actions = true
-    for ind,inv_item in ipairs(windower.ffxi.get_items(0)) do
+    local set_any = false
+    for ind, inv_item in ipairs(windower.ffxi.get_items(0)) do
         if inv_item and inv_item.id == item.id and (inv_item.status == 0 or inv_item.status == 25) then
-            bazaar_set_price(ind,price)
+            bazaar_set_price(ind, price)
+            set_any = true
         end
     end
     actions = false
+    return set_any
 end
 
-function bazaar_set_price(index,price)   
-    if bazaar then
-        local set_bazaar = packets.new('outgoing', 0x10A, {['Inventory Index'] = index,['Price'] = price})
-        packets.inject(set_bazaar)
-        coroutine.sleep(1+math.random())
+function bazaar_set_price(index, price)   
+    if not bazaar then
+        print('AH Error: Not in bazaar mode.')
+        return false
     end
+    
+    local set_bazaar = packets.new('outgoing', 0x10A, {
+        ['Inventory Index'] = index,
+        ['Price'] = price
+    })
+    packets.inject(set_bazaar)
+    coroutine.sleep(1 + math.random())
+    return true
 end
 
 windower.register_event('incoming chunk', function(id, original, modified, injected, blocked)
     if id == 0x04C then
-        local packet = packets.parse('incoming',original)
+        local packet = packets.parse('incoming', original)
         if packet['Type'] == 0x04 then
             local last_4e = windower.packets.last_outgoing(0x04E)
             local slot = find_empty_slot()
-            local price = last_4e:sub(9,12)
-            local fee = original:byte(9)+original:byte(10)*256+original:byte(11)*256^2+original:byte(12)*256^3
-            if last_4e:byte(3)+last_4e:byte(4) == 0 and slot and packet['Success'] == 1 and last_4e:byte(5) == 0x04 and original:sub(13,17) == last_4e:sub(13,17) and windower.ffxi.get_items().gil >= fee then
-                local sell_confirm = string.char(0x4E,0x1E,0,0,0x0B,slot,0,0)..last_4e:sub(9,12)..original:sub(13,14)..string.char(0,0)..last_4e:sub(17)	
+            local price = last_4e:sub(9, 12)
+            local fee = original:byte(9) + original:byte(10)*256 + original:byte(11)*256^2 + original:byte(12)*256^3
+            
+            if last_4e:byte(3) + last_4e:byte(4) == 0 and 
+               slot and 
+               packet['Success'] == 1 and 
+               last_4e:byte(5) == 0x04 and 
+               original:sub(13, 17) == last_4e:sub(13, 17) and 
+               windower.ffxi.get_items().gil >= fee then
+                
+                local sell_confirm = string.char(0x4E, 0x1E, 0, 0, 0x0B, slot, 0, 0) .. 
+                                     last_4e:sub(9, 12) .. 
+                                     original:sub(13, 14) .. 
+                                     string.char(0, 0) .. 
+                                     last_4e:sub(17)
+                
                 coroutine.sleep(math.random())
-                --print('Modified packet 0x04E: %s\n%s bytes':format(space_hex(sell_confirm:hex()),#sell_confirm))
-                windower.packets.inject_outgoing(0x4E,sell_confirm)
-            end	
+                windower.packets.inject_outgoing(0x4E, sell_confirm)
+            end
         elseif packet['Type'] == 0x0A then
             if original:byte(7) == 1 then
                 if not auction_box then auction_box = {} end
@@ -252,7 +270,6 @@ windower.register_event('incoming chunk', function(id, original, modified, injec
     end
 end)
 
-
 windower.register_event('outgoing chunk', function(id, original, modified, injected, blocked)
     if id == 0x10B then
         bazaar = true
@@ -261,7 +278,7 @@ windower.register_event('outgoing chunk', function(id, original, modified, injec
     end
 end)
 
-function comma_value(n) -- credit http://richard.warburton.it
+function comma_value(n)
     local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
     return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
 end
@@ -298,7 +315,6 @@ function open_menu_command()
     o_menu = o_menu..string.char(0,0,0,0,0,0,0,0)..string.char(0,0,0,0,0,0,0,0)
     o_menu = o_menu..string.char(0,0,0,0,0,0,0,0)..string.char(0,0,0,0,0,0,0,0)
     o_menu = o_menu..string.char(0,0,0,0,0,0,0,0)..string.char(0,0,0,0)
-    --print('Modified packet 0x04C: %s\n%s bytes':format(space_hex(o_menu:hex()),#o_menu))
     windower.packets.inject_incoming(0x4C,o_menu)
 end
 
@@ -308,11 +324,7 @@ function remove_sold()
    for slot=0,6 do
        if auction_box and slot and auction_box[slot] and (auction_box[slot].status == 'Sold' or auction_box[slot].status == 'Not Sold') then
             local i_sold = string.char(0x4E,0x1E,0,0,0x10,slot,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
-            --print('Modified packet 0x04E: %s\n%s bytes':format(space_hex(i_sold:hex()),#i_sold))
             windower.packets.inject_outgoing(0x4E,i_sold)
-
-            -- local i_sold = packets.new('outgoing', 0x4E, {['Type'] = 'Item sold',['Slot'] = slot})
-           -- print(packets.build(i_sold):hex())
             coroutine.sleep(1+math.random())
         end
     end
@@ -330,19 +342,10 @@ function format_price(price)
     return tonumber(price)
 end
 
-function stack_conv()
-    local single
-    if (item.stack ~= 1) and (vol == '1' or vol == 'stack') then
-        single = 0
-    elseif vol == '0' or vol == 'single' then
-        single = 1
-    else print('AH Error: Specify Stack or Single') return false end
-end    
-
 function ah_proposal(bid, item_name, vol, price)
     if not windower.ffxi.get_player() then return end
     local item = get_item_res(item_name)
-    if not item then print('AH Error: %s not a valid item name.':format(item_name)) return false end
+    if not item then print(('AH Error: %s not a valid item name.'):format(item_name)) return false end
     
     if item.flags['No Auction'] == true then print(item.flags) return false end
 
@@ -360,25 +363,19 @@ function ah_proposal(bid, item_name, vol, price)
     if bid == 'buy' and price and tonumber(price) <= windower.ffxi.get_items().gil then
         local slot = find_empty_slot() == nil and 0x07 or find_empty_slot()
         trans = trans..string.char(0x0E,slot,0,0, (price%256), (math.floor((price/256)%256)), (math.floor((price/65536)%256)), (math.floor((price/16777216)%256)), (item.id%256), (math.floor((item.id/256)%256)),0,0)
-        --print('%s "%s" %s %s ID:%s':format(bid, item.en, comma_value(price),single == 1 and '[Single]' or '[Stack]',item.id))
     elseif bid == 'sell' and price and tonumber(price) <= 999999999 then
         if not auction_box then print('AH Error: Click auction counter or use /ah to initialize sales.') return	end
         if not find_empty_slot() then print('AHPack Error: No Empty Slots Available.') return end
         trans = trans.. string.char(0x04,0,0,0, (price%256), (math.floor((price/256)%256)), (math.floor((price/65536)%256)), (math.floor((price/16777216)%256)))
         local index = find_item(item.id, single == 1 and single or item.stack, item.max_charges)
-        if not index then print('AH Error: %s of %s not found in inventory.':format(single == 1 and 'Single' or 'Stack',item.en)) return end
+        if not index then print(('AH Error: %s of %s not found in inventory.'):format(single == 1 and 'Single' or 'Stack',item.en)) return end
         trans = trans..string.char((index%256), (math.floor((index/256)%256)), (item.id%256), (math.floor((item.id/256)%256)))
-        --print('%s "%s" %s %s ID:%s Ind:%s':format(bid, item.en, comma_value(price),single == 1 and '[Single]' or '[Stack]',item.id,index))
     else
         print('AH Error: Invalid price.')
         return false 
     end
     
     trans = trans..string.char(single,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0)
-    --print('Modified packet 0x04E: %s\n%s bytes':format(space_hex(trans:hex()),#trans))	
     windower.packets.inject_outgoing(0x4E,trans)
     return true
 end
------------------------------------------------------------------------------------------------------
---print('AHPack buy "short or full item name" 0 10,000\n single OR 0 and stack OR 1.')
------------------------------------------------------------------------------------------------------

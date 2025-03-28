@@ -71,7 +71,7 @@ local player = windower.ffxi.get_player()
 local playerZone = windower.ffxi.get_info().zone
 local partyMembers = T{}
 local partyMemberNames = S{}
-local partyMemebersInZone
+local partyMembersInZone
 local partyPets = T{}
 local enmityList = T{}
 local enmityListNames = T{}
@@ -230,7 +230,7 @@ windower.register_event('addon command', function (...)
 			local direction = tostring(args[3])
 			if S{"u", "up"}:contains(direction) then
 				settings.enmityBar.stack = "up"
-			elseif S{"d", "down"}:contains(direciton) then
+			elseif S{"d", "down"}:contains(direction) then
 				settings.enmityBar.stack = "down"
 			else
 				if settings.enmityBar.stack == "up" then settings.enmityBar.stack = "down"
@@ -819,6 +819,8 @@ end
 
 function disengageMe()
 	local player = windower.ffxi.get_player()
+	if not player then return end
+	
 	if player.status == 1 then
 		packets.inject(packets.new('outgoing', 0x01A, {
 			['Target'] = player.id,
@@ -831,7 +833,7 @@ end
 
 function destroyZombies()
 	for i,v in pairs(enmityList) do
-		mob = windower.ffxi.get_mob_by_id(v.id)
+		local mob = windower.ffxi.get_mob_by_id(v.id)
 		if mob and mob.hpp == 0 then
 			enmityList[mob.id] = nil
 			if mob.id == ratTarget then ratTarget = nil end
@@ -958,7 +960,7 @@ function playerCharmed()
 end
 
 function recordPartyMembers(p, pNum)
-	if p and playerInZone(p.zone) then partyMemebersInZone = partyMemebersInZone + 1 end
+	if p and playerInZone(p.zone) then partyMembersInZone = partyMembersInZone + 1 end
 	if p and p.mob and not partyMembers[p.mob.id] then
 		partyMembers[p.mob.id] = {name = p.name, party = pNum}
 		partyMemberNames:add(p.name:lower())
@@ -970,7 +972,7 @@ function scanForPartyMembers()
 	if not party then return end
 	partyMembers = T{}
 	partyMemberNames = S{}
-	partyMemebersInZone = 0
+	partyMembersInZone = 0
 	local member
 	for i=0, (party.party1_count or 0) -1 do
 		member = party['p'..tostring(i)]
@@ -984,7 +986,7 @@ function scanForPartyMembers()
 		member = party['a2'..tostring(i)]
 		recordPartyMembers(member, 3)
 	end
-	if partyMembers:length() < partyMemebersInZone then -- Not everyone was in range to get mob data from get_party() 
+	if partyMembers:length() < partyMembersInZone then -- Not everyone was in range to get mob data from get_party() 
 		coroutine.schedule(scanForPartyMembers, 5)
 	end
 end
@@ -1004,7 +1006,6 @@ function actionMessageHandler(amPacket)
 		removeFromHistory(mobData)
 		if engaged and myTarget and myTarget.id == mobData.id then
 			if not enmityList:empty() and targetingOn and not state.cs then
-				-- destroyZombies()
 				debugInfo.startTime = os.clock()
 				determineNextBestTarget()
 			else
@@ -1014,7 +1015,7 @@ function actionMessageHandler(amPacket)
 	end
 end
 
-function lockTargetHandler(ltPacket) -- Hopefully stop addon from locking on to things multiple times
+function lockTargetHandler(ltPacket)
 	local mobInfo = windower.ffxi.get_mob_by_id(ltPacket.Target)
 	if lockTargetResponse and mobInfo.id == lockTargetResponse then return true end
 	if lastSelectedID and myTarget and myTarget.id ~= lastSelectedID and lastSelectedID == mobInfo.id then return true end
@@ -1023,7 +1024,7 @@ function lockTargetHandler(ltPacket) -- Hopefully stop addon from locking on to 
 	return false
 end
 
-function targetChangeHandler(tcPacket) -- Handle the player manually targeting
+function targetChangeHandler(tcPacket)
 	if  tcPacket.Category == 15 then 
 		if enmityList:contains(tcPacket.Target) then addToHistory(windower.ffxi.get_mob_by_id(tcPacket.Target)) end
 		if lastSelectedID and tcPacket.Target == lastSelectedID then
@@ -1050,17 +1051,27 @@ function petInfoMessageHandler(petPacket)
 end
 
 function mouseClickHandler(x, y)
-	for _, v in ipairs(enmityBars) do
-		if bar.hover(v, x, y) then
-			local mob = windower.ffxi.get_mob_by_id(bar.getID(v))
-			if mob and mob.id and mob.index then
-				targetSpecificMob(mob.id, mob.index)
-				return true
+	if enmityBars and #enmityBars > 0 then
+		for i = 1, #enmityBars do
+			local v = enmityBars[i]
+			if v and bar.hover(v, x, y) then
+				local mobId = bar.getID(v)
+				if not mobId then return false end
+				
+				local mob = windower.ffxi.get_mob_by_id(mobId)
+				if mob and mob.id and mob.index then
+					targetSpecificMob(mob.id, mob.index)
+					return true
+				end
 			end
 		end
 	end
-	if bar.hover(ratBar, x, y) then
-		local mob = windower.ffxi.get_mob_by_id(bar.getID(ratBar))
+	
+	if ratBar and bar.hover(ratBar, x, y) then
+		local mobId = bar.getID(ratBar)
+		if not mobId then return false end
+		
+		local mob = windower.ffxi.get_mob_by_id(mobId)
 		if mob and mob.id and mob.index then 
 			targetSpecificMob(mob.id, mob.index)
 			return true
@@ -1070,10 +1081,13 @@ function mouseClickHandler(x, y)
 end
 
 function mouseReleaseHandler(x, y)
-	for _, v in ipairs(enmityBars) do
-		if bar.hover(v, x, y) then return true end
+	if enmityBars and #enmityBars > 0 then
+		for i = 1, #enmityBars do
+			local v = enmityBars[i]
+			if v and bar.hover(v, x, y) then return true end
+		end
 	end
-	if bar.hover(ratBar, x, y) then return true end
+	if ratBar and bar.hover(ratBar, x, y) then return true end
 	return false
 end
 

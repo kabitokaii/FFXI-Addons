@@ -85,8 +85,12 @@ after_cast_delay = 1.5
 failed_cast_delay = 1.5
 skillchain_delay = 8
 
+start_act = T{3, 7, 9, 11, 13, 14, 15}
+finish_act = T{5, 8, 10, 12}
+active = false
+
 function buff_active(id)
-    if T(windower.ffxi.get_player().buffs):contains(BuffID) == true then
+    if T(windower.ffxi.get_player().buffs):contains(id) == true then
         return true
     end
     return false
@@ -161,7 +165,7 @@ function choose_tier()
         else
             return ""
         end
-    elseif (setting.tier == "VI" or settings.tier == "V" or settings.tier == "IV" or settings.tier == "III" or setting.tier == "II") then
+    elseif (settings.tier == "VI" or settings.tier == "V" or settings.tier == "IV" or settings.tier == "III" or settings.tier == "II") then
         return " "..settings.tier
     else
         return ""
@@ -288,6 +292,7 @@ function engine_start()
     windower.add_to_chat(207, _addon.name..": Starting...")
     player = windower.ffxi.get_player()
     stop = false
+    active = true
     pause = 0
     is_busy = 0
     last_time = os.clock()
@@ -296,6 +301,7 @@ end
 function engine_stop()
     windower.add_to_chat(207, _addon.name..": Stopping...")
     stop = true
+    active = false
 end
 
 function engine_pause(t) 
@@ -574,7 +580,7 @@ windower.register_event('addon command', function(...)
             end
         end
     elseif (args[1] == 'f') then
-        if (args[2] ~= nil and args[2] >= 1 and args[2] <= 100) then
+        if (args[2] ~= nil and tonumber(args[2]) and tonumber(args[2]) >= 1 and tonumber(args[2]) <= 100) then
             settings.frequency = tonumber(args[2])
         else
             windower.add_to_chat(207, _addon.name..": Invalid frequency - Usage: nukes frequency #")

@@ -24,15 +24,15 @@ _addon.author = 'Seth VanHeulen (Acacia@Odin)'
 
 -- bit manipulation helper functions
 
-function bit(p)
+local function bit(p)
     return 2 ^ p
 end
 
-function checkbit(x, p)
+local function checkbit(x, p)
     return x % (p + p) >= p
 end
 
-function clearbit(x, p)
+local function clearbit(x, p)
     return checkbit(x, p) and x - p or x
 end
 
@@ -41,23 +41,48 @@ function string.clearbits(s, p, c)
         s = s:clearbits(p + 1, c - 1)
     end
     local b = math.floor(p / 8)
+    -- Check if we're within bounds
+    if b + 1 > #s then return s end
+    
     return s:sub(1, b) .. string.char(clearbit(s:byte(b + 1), bit(p % 8))) .. s:sub(b + 2)
 end
 
 function string.checkbit(s, p)
-    return checkbit(s:byte(math.floor(p / 8) + 1), bit(p % 8))
+    local bytePos = math.floor(p / 8) + 1
+    -- Check if we're within bounds
+    if bytePos > #s then return false end
+    
+    return checkbit(s:byte(bytePos), bit(p % 8))
 end
 
 -- event callback functions
 
-function check_incoming_chunk(id, original, modified, injected, blocked)
-    if id == 0x28 then
+-- This function processes incoming packets and removes specific bits for action packets (category 11)
+-- These bits are related to character animation anchoring in the game
+local function check_incoming_chunk(id, original, modified, injected, blocked)
+    if id == 0x28 then  -- Action packet ID
+        -- Safety check for minimum packet length
+        if #original < 11 then return end
+        
         local category = math.floor((original:byte(11) % 64) / 4)
-        if category == 11 then
+        if category == 11 then  -- Category 11 = Fishing
             local new = original
             local position = 150
-            for target = 1,original:byte(10) do
+            
+            -- Check byte 10 exists and contains valid data
+            if #original < 10 then return end
+            local targetCount = original:byte(10)
+            
+            for target = 1, targetCount do
+                -- Safety check: ensure we don't exceed packet bounds
+                if position + 122 > #original * 8 then
+                    break
+                end
+                
+                -- Clear animation anchoring bits
                 new = new:clearbits(position + 60, 3)
+                
+                -- Calculate position of next target data block
                 local next_position = position + 123
                 if original:checkbit(position + 121) then
                     next_position = next_position + 37

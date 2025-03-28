@@ -37,10 +37,21 @@ end
 local haltontp = function()
     settings.HaltOnTp = not settings.HaltOnTp
 
-    if settings.HaltonTp then
+    if settings.HaltOnTp then
         windower.add_to_chat(17, 'AutoRA will halt upon reaching 1000 TP')
     else
         windower.add_to_chat(17, 'AutoRA will no longer halt upon reaching 1000 TP')
+    end
+end
+
+local setDelay = function(delay)
+    delay = tonumber(delay)
+    if delay and delay > 0 then
+        settings.Delay = delay
+        config.save(settings)
+        windower.add_to_chat(17, 'AutoRA: Delay set to ' .. delay)
+    else
+        windower.add_to_chat(17, 'AutoRA: Delay setting requires a number greater than 0')
     end
 end
 
@@ -64,11 +75,11 @@ end
 
 windower.register_event('action', function(action)
     if auto and action.actor_id == player_id and action.category == 2 then
-        check:schedule(settings.Delay)
+        windower.send_command('wait ' .. tostring(settings.Delay) .. ';lua c autora check')
     end
 end)
 
-windower.register_event('addon command', function(command)
+windower.register_event('addon command', function(command, param)
     command = command and command:lower() or 'help'
 
     if command == 'start' then
@@ -78,7 +89,9 @@ windower.register_event('addon command', function(command)
     elseif command == 'shoot' then
         shoot()
     elseif command == 'reload' then
-        setDelay()
+        setDelay(param)
+    elseif command == 'delay' then
+        setDelay(param)
     elseif command == 'haltontp' then
         haltontp()
     elseif command == 'help' then
@@ -87,6 +100,7 @@ windower.register_event('addon command', function(command)
         windower.add_to_chat(17, '    start      - Starts auto attack with ranged weapon')
         windower.add_to_chat(17, '    stop       - Stops auto attack with ranged weapon')
         windower.add_to_chat(17, '    haltontp    - Toggles automatic halt upon reaching 1000 TP')
+        windower.add_to_chat(17, '    delay <number> - Sets the delay between ranged attacks')
         windower.add_to_chat(17, '    help       - Displays this help text')
         windower.add_to_chat(17, ' ')
         windower.add_to_chat(17, 'AutoRA will only automate ranged attacks if your status is "Engaged".  Otherwise it will always fire a single ranged attack.')

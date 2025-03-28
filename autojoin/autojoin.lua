@@ -28,7 +28,7 @@ aliases = T{
     blacklist    = 'blacklist'
 }
 
--- String-sets for quick aceess.
+-- String-sets for quick access.
 add_strs = S{'a', 'add', '+'}
 rm_strs = S{'r', 'rm', 'remove', '-'}
 dec_strs = S{'decline', 'autodecline', 'auto-decline'}
@@ -62,7 +62,7 @@ end
 
 -- Invite handler
 windower.register_event('party invite', function(sender)
-    if settings.mode == 'whitelist' and settings.whitelist:contains(sender) or settings.mode == 'blacklist' and not settings.blacklist:contains(sender)then
+    if settings.mode == 'whitelist' and settings.whitelist:contains(sender) or settings.mode == 'blacklist' and not settings.blacklist:contains(sender) then
         join()
     elseif settings.mode == 'blacklist' and settings.autodecline then
         decline()
@@ -100,7 +100,6 @@ function rm_name(mode, ...)
 end
 
 -- Interpreter
-
 windower.register_event('addon command', function(command, ...)
     command = command and command:lower() or 'status'
     local args = T{...}
@@ -122,8 +121,8 @@ windower.register_event('addon command', function(command, ...)
 
     -- List management
     elseif alias_strs:contains(command) then
-        mode = aliases[command]
-        names = args:slice(2):map(string.ucfirst .. string.lower)
+        local mode = aliases[command]
+        local names = args:slice(2):map(string.ucfirst .. string.lower)
 
         -- If no operator provided
         if args:empty() then
@@ -175,8 +174,7 @@ windower.register_event('addon command', function(command, ...)
 
     -- Unknown command handler
     else
-        warning('Unkown command \'' .. command .. '\', ignored.')
-
+        warning('Unknown command \'' .. command .. '\', ignored.')
     end
 end)
 

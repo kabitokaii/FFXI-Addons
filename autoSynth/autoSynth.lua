@@ -12,6 +12,26 @@ _libs.lor.req('all')
 
 local packets = require('packets')
 
+-- Add compatibility functions for Lua 5.1
+if not string.contains then
+    string.contains = function(str, substr)
+        return str:find(substr, 1, true) ~= nil
+    end
+end
+
+if not string.join then
+    string.join = function(delimiter, list)
+        local result = ""
+        for i, v in ipairs(list) do
+            if i > 1 then 
+                result = result .. delimiter
+            end
+            result = result .. v
+        end
+        return result
+    end
+end
+
 local synthesisPossible = false
 local baseDelay = 2.1
 local qualities = {[0]='NQ', [1]='Break', [2]='HQ'}
@@ -44,20 +64,31 @@ function print_stats(stats, header)
     atcfs('%s stats:', header)
     if stats.skillup_count > 0 then
         local pl = (stats.skillup_count > 1) and 's' or ''
-        atcfs('Skill increase: %.1f (%d skillup%s) | Avg: %.2f per skillup, %.2f per synth | Rate: %.2f%%', stats.skillups, stats.skillup_count, pl, stats.skillups/stats.skillup_count, stats.skillups/stats.synths, stats.skillup_count/stats.synths*100)
+        if stats.synths > 0 then
+            atcfs('Skill increase: %.1f (%d skillup%s) | Avg: %.2f per skillup, %.2f per synth | Rate: %.2f%%', 
+                stats.skillups, stats.skillup_count, pl, 
+                stats.skillups/stats.skillup_count, 
+                stats.skillups/stats.synths, 
+                stats.skillup_count/stats.synths*100)
+        else
+            atcfs('Skill increase: %.1f (%d skillup%s)', stats.skillups, stats.skillup_count, pl)
+        end
     else
         atc('No skillups.')
     end
         
     if stats.synths > 0 then
-        atcfs('Total: %d synths | HQ: %d (%.2f%%) | Break: %d (%.2f%%)', stats.synths, stats.hq, stats.hq/stats.synths*100, stats.breaks, stats.breaks/stats.synths*100)
+        atcfs('Total: %d synths | HQ: %d (%.2f%%) | Break: %d (%.2f%%)', 
+            stats.synths, stats.hq, 
+            stats.hq/stats.synths*100, 
+            stats.breaks, stats.breaks/stats.synths*100)
         if stats.hq > 0 then
             local hq_msgs = {}
             for tier, count in ipairs(stats.hqT) do
                 local tpct, hpct = count/stats.synths*100, count/stats.hq*100
                 hq_msgs[#hq_msgs+1] = ('HQ%s: %d (%.2f%% overall / %.2f%% hq)'):format(tier, count, tpct, hpct)
             end
-            atcfs((' | '):join(hq_msgs))
+            atc(table.concat(hq_msgs, ' | '))
         end
     else
         atc('No synths performed.')
@@ -229,6 +260,8 @@ function delayedAttempt()
 end
 
 windower.register_event('incoming text', function(original)
+    if not original then return end
+    
     if string.contains(original, 'Synthesis canceled.') then
         stop_session()
     elseif original == 'You must wait longer before repeating that action.' then

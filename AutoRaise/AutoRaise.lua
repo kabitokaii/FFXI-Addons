@@ -29,28 +29,33 @@ require('logger')
 local check_delay = 5 -- time between KO checks
 local raise_delay = 10 -- time to cast raise and delay before resuming
 local silentmode = false -- Will silence intro or status messages
-local sound_alert = false; -- plays a ping sound when a dead member is detected
+local sound_alert = false -- plays a ping sound when a dead member is detected
 local healer = 'Saerae' -- Name of primary raiser, who the support member will monitor.
 -----------------------------------
  
 function triage()
     local player = windower.ffxi.get_player()
+    if not player then return true end
+    
     if player.status == 3 then 
         notice('Resting detected: Aborting')
-        return true;
+        return true
     end
-    if not player then return end
+    
     local party = windower.ffxi.get_party()
-    if party.party1_count == 1 then
+    if not party or party.party1_count == 1 then
         notice('No party members detected. Aborting.')
+        return true
     else
-        for i = 1,party.party1_count-1 do
-            member = windower.ffxi.get_mob_by_name(party['p'..i].name)                      
-             if member and member.status == 2 then
-                if not silentmode then warning(member.name .. ' is dead. Attempting to raise.') end 
-                if (sound_alert) then windower.play_sound(windower.addon_path..'sounds/iseedeadpeople.wav') end
-                windower.chat.input('/ma Arise ' .. member.name)
-                coroutine.sleep(raise_delay)
+        for i = 1, party.party1_count-1 do
+            if party['p'..i] and party['p'..i].name then
+                local member = windower.ffxi.get_mob_by_name(party['p'..i].name)                      
+                if member and member.status == 2 then
+                    if not silentmode then warning(member.name .. ' is dead. Attempting to raise.') end 
+                    if sound_alert then windower.play_sound(windower.addon_path..'sounds/iseedeadpeople.wav') end
+                    windower.chat.input('/ma Arise ' .. member.name)
+                    coroutine.sleep(raise_delay)
+                end
             end
         end
         coroutine.sleep(check_delay)
@@ -58,17 +63,20 @@ function triage()
         return false
     end
 end
+
 function triage_healer()
     local player = windower.ffxi.get_player()
+    if not player then return true end
+    
     if player.status == 3 then 
         notice('Resting detected: Aborting')
-        return true;
+        return true
     end
-    if not player then return end
-    member = windower.ffxi.get_mob_by_name(healer)
-    if member.status == 2 and not raise_target then
+    
+    local member = windower.ffxi.get_mob_by_name(healer)
+    if member and member.status == 2 then
         warning(member.name .. ' is dead. Attempting to raise.')
-        if (sound_alert) then windower.play_sound(windower.addon_path..'sounds/iseedeadpeople.wav') end
+        if sound_alert then windower.play_sound(windower.addon_path..'sounds/iseedeadpeople.wav') end
         windower.chat.input('/ma Arise ' .. member.name)
         coroutine.sleep(raise_delay)
     end

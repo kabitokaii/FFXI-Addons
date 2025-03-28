@@ -55,6 +55,7 @@ local delay = 0
 local action = 0
 local player = nil 
 local skip_afac = false
+local running = false -- This was missing initialization
 
 -- Default settings
 local defaults = T{}
@@ -92,7 +93,7 @@ local summon_list = {
     ["Wind Blade"] = "Garuda",
     
     ["Flaming Crush"] = "Ifrit",
-    ["Meteor Stike"] = "Ifrit",
+    ["Meteor Strike"] = "Ifrit", -- Fixed typo: "Stike" -> "Strike"
 
     ["Hysteric Barrage"] = "Siren",
 }
@@ -137,7 +138,7 @@ windower.register_event('prerender', function(...)
     local cmd = ""
 
     if (running and (time > time_last_check + settings.frequency) and (time > time_last_check + delay)) then
-        message("Delay from last action: "..tostring(delay).." Time since last action: "..time - time_last_check, true)
+        message("Delay from last action: "..tostring(delay).." Time since last action: "..time - time_last_check, debug)
         player = windower.ffxi.get_player()
 
         local recasts = T(windower.ffxi.get_ability_recasts())
@@ -160,7 +161,7 @@ windower.register_event('prerender', function(...)
             for k, v in ipairs(buffs) do
                 buff_list = buff_list..", "..res.buffs[v].en
             end
-            message("Buffs: "..buff_list, true)
+            message("Buffs: "..buff_list, debug)
             return
         end
 
@@ -222,6 +223,9 @@ windower.register_event('prerender', function(...)
 end)
 
 windower.register_event('addon command', function(...)
+    local arg = {...} -- Ensure arg is always defined for Lua 5.1
+    if (#arg == 0) then return end -- Check for empty commands
+    
     if (T({"start","go","on"}):contains(arg[1]:lower())) then
         message("AF + AC Starting!")
         delay = 0
@@ -242,6 +246,7 @@ windower.register_event('addon command', function(...)
         settings:save()
     elseif (T({"mp","magic","mana"}):contains(arg[1]:lower())) then
         local num = tonumber(arg[2]) or 300
+        settings.convert_mp = num -- Actually set the value in settings
         message("Convert MP threshold: "..tostring(num))
         settings:save()
     elseif (arg[1]:lower() == "show") then

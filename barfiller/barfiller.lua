@@ -51,9 +51,12 @@ rested_bonus_image = images.new(settings.Images.RestedBonus)
 
 exp_text = texts.new(settings.Texts.Exp)
 
-debug = false
-ready = false
-chunk_update = false
+-- Make important variables local to prevent global namespace pollution
+local debug = false
+local ready = false
+local chunk_update = false
+local xp = {current = 0, total = 0, tnl = 0}
+local last_update = 0 -- Move this outside the event to persist between frames
 
 windower.register_event('load',function()
     if windower.ffxi.get_info().logged_in then
@@ -115,12 +118,12 @@ windower.register_event('prerender',function()
         -- Thanks to Iryoku for the logic on smooth animations
         if new_width ~= nil and new_width > 0 then
             if old_width < new_width then
-                local last_update = 0
+                -- Use os.clock() for smoother timing (returns fractional seconds)
                 local x = old_width + math.ceil(((new_width - old_width) * 0.1))
                 foreground_image:size(x, settings.Images.Foreground.Size.Height)
                 if debug then print(old_width, x, new_width) end
 
-                local now = os.time()
+                local now = os.clock()
                 if now - last_update > 0.5 then
                     update_strings()
                     last_update = now

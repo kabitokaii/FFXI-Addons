@@ -53,10 +53,63 @@ skills = require('skills')
 
 texts = require('texts')
 
-local bags = {[0]='inventory',[8]='wardrobe',[10]='wardrobe2',[11]='wardrobe3',[12]='wardrobe4'}
+--[[ **************** CONSTANTS **************** ]]--
+-- Buff IDs for disabled status checks
+local BUFF_KO = 0
+local BUFF_SLEEP = 2
+local BUFF_SILENCE = 6
+local BUFF_PETRIFICATION = 7
+local BUFF_STUN = 10
+local BUFF_CHARM = 14
+local BUFF_TERRORIZE = 28
+local BUFF_MUTE = 29
+local BUFF_LULLABY = 193
+local BUFF_OMERTA = 262
+
+-- Chain buff IDs
+local BUFF_CHAIN_ABILITY = 163   -- Chainbound
+local BUFF_CHAIN_ABILITY2 = 164  -- Chain ability
+local BUFF_CHAIN_ABILITY3 = 470  -- Another chain buff
+
+-- Action categories
+local ACTION_FINISH_CAST = 4
+local ACTION_JOB_ABILITY = 6
+local ACTION_BEGIN_WS = 24931
+local ACTION_FAILED_WS = 28787
+
+-- Equipment slots
+local BAG_INVENTORY = 0
+local BAG_WARDROBE = 8
+local BAG_WARDROBE2 = 10
+local BAG_WARDROBE3 = 11
+local BAG_WARDROBE4 = 12
+
+-- Window timing constants
+local DEFAULT_UPDATE_FREQUENCY = 0.5
+local DEFAULT_MIN_WS_WINDOW = 2.75
+local DEFAULT_MAX_WS_WINDOW = 8
+local DEFAULT_MIN_TP = 1000
+local ABILITY_DELAY = 1.7
+local AFTER_CAST_DELAY = 2
+local FAILED_CAST_DELAY = 2.4
+
+--[[ **************** GLOBAL SETTINGS AND STATE **************** ]]--
+local bags = {
+    [BAG_INVENTORY]='inventory',
+    [BAG_WARDROBE]='wardrobe',
+    [BAG_WARDROBE2]='wardrobe2',
+    [BAG_WARDROBE3]='wardrobe3',
+    [BAG_WARDROBE4]='wardrobe4'
+}
+
 local message_ids = T{110,185,187,317,802}
 local skillchain_ids = T{288,289,290,291,292,293,294,295,296,297,298,299,300,301,385,386,387,388,389,390,391,392,393,394,395,396,397,767,768,769,770}
-local buff_dur = T{[163]=40,[164]=30,[470]=60}
+local buff_dur = T{
+    [BUFF_CHAIN_ABILITY]=40,
+    [BUFF_CHAIN_ABILITY2]=30,
+    [BUFF_CHAIN_ABILITY3]=60
+}
+
 local info = T{}
 local resonating = T{}
 local buffs = T{}
@@ -141,20 +194,21 @@ local is_casting = false
 
 local last_check_time = os.clock()
 local last_frame_time = 0
-local ability_delay = 1.7
-local after_cast_delay = 2
-local failed_cast_delay = 2.4
+local ability_delay = ABILITY_DELAY
+local after_cast_delay = AFTER_CAST_DELAY
+local failed_cast_delay = FAILED_CAST_DELAY
 
 local sc_opened = false
 local sc_effect_duration = 0
 local ws_window = 0
 local last_attempt = 0
+local last_skillchain = T{english='None', elements=T{}, chains=T{}} -- Initialize last_skillchain
 
 local defaults = T{}
-defaults.update_frequency = 0.5
-defaults.min_ws_window = 2.75
-defaults.max_ws_window = 8
-defaults.min_tp = 1000
+defaults.update_frequency = DEFAULT_UPDATE_FREQUENCY
+defaults.min_ws_window = DEFAULT_MIN_WS_WINDOW
+defaults.max_ws_window = DEFAULT_MAX_WS_WINDOW
+defaults.min_tp = DEFAULT_MIN_TP
 defaults.close_levels = {[1]=true,[2]=true,[3]=true,[4]=true}
 defaults.target_sc_level = 2
 defaults.attempt_delay = 0.5
@@ -350,35 +404,38 @@ function show_status(which)
 end
 
 function buff_active(id)
-    if T(windower.ffxi.get_player().buffs):contains(BuffID) == true then
-        return true
+    local player = windower.ffxi.get_player()
+    if not player then 
+        return false
     end
-    return false
+    
+    -- Check buffs table exists
+    if not player.buffs then
+        return false
+    end
+    
+    return T(player.buffs):contains(id)
 end
 
+-- Add the missing chain_buff function
+function chain_buff(buff)
+    -- This function should determine if a buff enables skillchains
+    -- Placeholder implementation - modify according to actual requirements
+    return buff == BUFF_CHAIN_ABILITY or buff == BUFF_CHAIN_ABILITY2 or buff == BUFF_CHAIN_ABILITY3
+end
+
+-- Simplify boolean returns
 function disabled()
-    if (buff_active(0)) then -- KO
-        return true
-    elseif (buff_active(2)) then -- Sleep
-        return true
-    elseif (buff_active(6)) then -- Silence
-        return true
-    elseif (buff_active(7)) then -- Petrification
-        return true
-    elseif (buff_active(10)) then -- Stun
-        return true
-    elseif (buff_active(14)) then -- Charm
-        return true
-    elseif (buff_active(28)) then -- Terrorize
-        return true
-    elseif (buff_active(29)) then -- Mute
-        return true
-    elseif (buff_active(193)) then -- Lullaby
-        return true
-    elseif (buff_active(262)) then -- Omerta
-        return true
-    end
-    return false
+    return buff_active(BUFF_KO) or    -- KO
+           buff_active(BUFF_SLEEP) or    -- Sleep
+           buff_active(BUFF_SILENCE) or    -- Silence
+           buff_active(BUFF_PETRIFICATION) or    -- Petrification
+           buff_active(BUFF_STUN) or        -- Stun
+           buff_active(BUFF_CHARM) or   -- Charm
+           buff_active(BUFF_TERRORIZE) or   -- Terrorize
+           buff_active(BUFF_MUTE) or   -- Mute
+           buff_active(BUFF_LULLABY) or  -- Lullaby
+           buff_active(BUFF_OMERTA)     -- Omerta
 end
 
 function skillchain_opened(sc)
@@ -402,130 +459,166 @@ function skillchain_closed()
 end
 
 function weaponskill_ready()
-	player = windower.ffxi.get_player()
-	if (not disabled() and not is_casting and is_busy <= 0 and (player.vitals.tp >= (settings.min_tp > 1000 and settings.min_tp or 1000))) then
-		return true
-	end
-	return false
+    player = windower.ffxi.get_player()
+    if not player or not player.vitals then
+        return false
+    end
+    
+    -- Make sure vitals.tp exists
+    if not player.vitals.tp then
+        debug_message("Cannot get TP value")
+        return false
+    end
+    
+    local min_tp = type(settings.min_tp) == "number" and settings.min_tp >= 1000 and settings.min_tp or 1000
+    
+    if (not disabled() and not is_casting and is_busy <= 0 and player.vitals.tp >= min_tp) then
+        return true
+    end
+    return false
 end
 
+-- Add safety check to prevent errors with nil values
+function safe_call(func, default, ...)
+    local status, result = pcall(func, ...)
+    if status then
+        return result
+    else
+        return default
+    end
+end
+
+-- Add safety to get_weaponskill function
 function get_weaponskill()
-	debug_message("Finding WSs")
-	local weapon_skills = T(windower.ffxi.get_abilities().weapon_skills)
-	local ws_melee_options =T{}
-	local ws_ranged_options = T{}
-	if (last_skillchain == nil or (#last_skillchain.elements < 1 and #last_skillchain.chains < 1)) then return "" end
+    debug_message("Finding WSs")
+    
+    -- Safety check for abilities
+    local abilities = windower.ffxi.get_abilities()
+    if not abilities or not abilities.weapon_skills then
+        debug_message("Cannot get weapon skills")
+        return nil
+    end
+    
+    local weapon_skills = T(abilities.weapon_skills)
+    local ws_melee_options = T{}
+    local ws_ranged_options = T{}
+    if (last_skillchain == nil or (#last_skillchain.elements < 1 and #last_skillchain.chains < 1)) then return "" end
 
-	if (last_skillchain.chains and #last_skillchain.chains >= 1) then
-		for _, v in pairs (last_skillchain.chains) do
-			for _, id in pairs (weapon_skills) do
-				if (id and skills.weapon_skills[id]) then
-					if (settings.ws_filters and settings.ws_filters[get_weapon_name()] and settings.ws_filters[get_weapon_name()]:contains(skills.weapon_skills[id].en)) then
-						debug_message(skills.weapon_skills[id].en.." is filtered out, skipping it.", true)
-					else 
-						for sc_closer, sc_result in pairs (sc_info[v].closers) do
-							if (T(skills.weapon_skills[id].skillchain):contains(sc_closer)) then
-								if (ranged_weaponskills:contains(skills.weapon_skills[id].en)) then
-									ws_ranged_options:append({name=skills.weapon_skills[id].en,lvl=sc_result[1]})
-								else
-									ws_melee_options:append({name=skills.weapon_skills[id].en,lvl=sc_result[1]})
-								end
-							end
-						end
-					end
-				end
-			end
-		end
-	else
-		for _, id in pairs (weapon_skills) do
-			if (id and id > 0 and skills.weapon_skills[id]) then
-				if (settings.ws_filters and settings.ws_filters[get_weapon_name()] and settings.ws_filters[get_weapon_name()]:contains(skills.weapon_skills[id].en)) then
-					debug_message(skills.weapon_skills[id].en.." is filtered out, skipping it.", true)
-				else 
-					for sc_closer, sc_result in pairs (sc_info[last_skillchain.english].closers) do
-						if (T(skills.weapon_skills[id].skillchain):contains(sc_closer)) then
-							if (ranged_weaponskills:contains(skills.weapon_skills[id].en)) then
-								ws_ranged_options:append({name=skills.weapon_skills[id].en,lvl=sc_result[1]})
-							else
-								ws_melee_options:append({name=skills.weapon_skills[id].en,lvl=sc_result[1]})
-							end
-						end
-					end
-				end
-			end
-		end
-	end
+    if (last_skillchain.chains and #last_skillchain.chains >= 1) then
+        for _, v in pairs (last_skillchain.chains) do
+            for _, id in pairs (weapon_skills) do
+                if (id and skills.weapon_skills[id]) then
+                    if (settings.ws_filters and settings.ws_filters[get_weapon_name()] and settings.ws_filters[get_weapon_name()]:contains(skills.weapon_skills[id].en)) then
+                        debug_message(skills.weapon_skills[id].en.." is filtered out, skipping it.", true)
+                    else 
+                        for sc_closer, sc_result in pairs (sc_info[v].closers) do
+                            if (T(skills.weapon_skills[id].skillchain):contains(sc_closer)) then
+                                if (ranged_weaponskills:contains(skills.weapon_skills[id].en)) then
+                                    ws_ranged_options:append({name=skills.weapon_skills[id].en,lvl=sc_result[1]})
+                                else
+                                    ws_melee_options:append({name=skills.weapon_skills[id].en,lvl=sc_result[1]})
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    else
+        for _, id in pairs (weapon_skills) do
+            if (id and id > 0 and skills.weapon_skills[id]) then
+                if (settings.ws_filters and settings.ws_filters[get_weapon_name()] and settings.ws_filters[get_weapon_name()]:contains(skills.weapon_skills[id].en)) then
+                    debug_message(skills.weapon_skills[id].en.." is filtered out, skipping it.", true)
+                else 
+                    for sc_closer, sc_result in pairs (sc_info[last_skillchain.english].closers) do
+                        if (T(skills.weapon_skills[id].skillchain):contains(sc_closer)) then
+                            if (ranged_weaponskills:contains(skills.weapon_skills[id].en)) then
+                                ws_ranged_options:append({name=skills.weapon_skills[id].en,lvl=sc_result[1]})
+                            else
+                                ws_melee_options:append({name=skills.weapon_skills[id].en,lvl=sc_result[1]})
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
 
-	if (debug) then
-		local l = ""
-		for k, v in pairs(ws_melee_options) do
-			l = l..(k>1 and ", " or "")..v.name..(ranged_weaponskills:contains(v.name) and "-R" or "-M")
-		end 
-		for k, v in pairs(ws_ranged_options) do
-			l = l..(k>1 and ", " or "")..v.name..(ranged_weaponskills:contains(v.name) and "-R" or "-M")
-		end 
-		debug_message("WSes found: "..(#ws_melee_options + #ws_ranged_options).." "..l)
-	end
+    if (debug) then
+        local l = ""
+        for k, v in pairs(ws_melee_options) do
+            l = l..(k>1 and ", " or "")..v.name..(ranged_weaponskills:contains(v.name) and "-R" or "-M")
+        end 
+        for k, v in pairs(ws_ranged_options) do
+            l = l..(k>1 and ", " or "")..v.name..(ranged_weaponskills:contains(v.name) and "-R" or "-M")
+        end 
+        debug_message("WSes found: "..(#ws_melee_options + #ws_ranged_options).." "..l)
+    end
 
-	if (#ws_melee_options == 0 and #ws_ranged_options == 0) then
-		return nil
-	elseif (#ws_melee_options == 1 and (#ws_ranged_options == 0 or settings.use_ranged == false)) then
-		return ws_melee_options[1]
-	elseif (#ws_melee_options == 0 and (#ws_ranged_options == 1 and settings.use_ranged)) then
-		return ws_ranged_options[1]
-	else 
-		local ws_melee, ws_ranged = nil, nil
-		local mob = windower.ffxi.get_mob_by_target("t")
-		local dist = mob.distance:sqrt() - mob.model_size/2
+    if (#ws_melee_options == 0 and #ws_ranged_options == 0) then
+        return nil
+    elseif (#ws_melee_options == 1 and (#ws_ranged_options == 0 or settings.use_ranged == false)) then
+        return ws_melee_options[1]
+    elseif (#ws_melee_options == 0 and (#ws_ranged_options == 1 and settings.use_ranged)) then
+        return ws_ranged_options[1]
+    else 
+        local ws_melee, ws_ranged = nil, nil
+        local mob = windower.ffxi.get_mob_by_target("t")
+        if not mob then
+            debug_message("No target mob found")
+            return nil
+        end
+        
+        local dist = safe_call(function() return mob.distance:sqrt() - mob.model_size/2 end, 999)
 
-		-- Check for preferred closing level WSs
-		for _, ws in pairs(ws_melee_options) do
-			if (ws.lvl == settings.target_sc_level) then
-				ws_melee = ws
-			end
-		end
-		for _, ws in pairs(ws_ranged_options) do
-			if (ws.lvl == settings.target_sc_level) then
-				ws_ranged = ws
-			end
-		end
-		debug_message("Target Melee options: "..tostring(#ws_melee_options).." Melee WS: "..tostring(ws_melee))
-		debug_message("Target Ranged options: "..tostring(#ws_ranged_options).." Ranged WS: "..tostring(ws_ranged))
-		if (ws_ranged and settings.use_ranged and settings.prefer_ranged) then
-			return ws_ranged
-		elseif (ws_melee and dist <= 4) then -- Don't waste ammo if we're in melee range and ranged WSs aren't preferred
-			return ws_melee
-		elseif (ws_ranged and settings.use_ranged) then -- Melee WSs aren't an option, if ranged allowed go for it
-			return ws_ranged
-		end
-		-- No WSs can close at our target level, check other allowed closing levels
-		for _, ws in pairs(ws_melee_options) do
-			if (settings.close_levels[ws.lvl] == true) then
-				if (ws_melee == nil or ws.lvl > ws_melee.lvl) then
-					ws_melee = ws
-				end
-			end
-		end
-		for _, ws in pairs(ws_ranged_options) do
-			if (settings.close_levels[ws.lvl] == true) then
-				if (ws_ranged == nil or ws.lvl > ws_ranged.lvl) then
-					ws_ranged = ws
-				end
-			end
-		end
-		debug_message("Other Melee options: "..tostring(#ws_melee_options).." Melee WS: "..tostring(ws_melee))
-		debug_message("Other Ranged options: "..tostring(#ws_ranged_options).." Ranged WS: "..tostring(ws_ranged))
-		debug_message("Distance: "..tostring(dist).." is "..(dist>4 and "not " or "").." in melee range")
-		debug_message("WS: "..tostring(ws_melee)..": "..tostring(ws_melee and ws_melee.lvl or ""))
-		if (ws_ranged and settings.close_levels[ws_ranged.lvl] and settings.use_ranged and settings.prefer_ranged) then
-			return ws_ranged
-		elseif (ws_melee and settings.close_levels[ws_melee.lvl] and dist <= 4) then -- Don't waste ammo if we're in melee range and ranged WSs aren't preferred
-			return ws_melee
-		elseif (ws_ranged and settings.close_levels[ws_ranged.lvl] and settings.use_ranged) then -- Melee WSs aren't an option, if ranged allowed go for it
-			return ws_ranged
-		end
-	end
-	return nil
+        -- Check for preferred closing level WSs
+        for _, ws in pairs(ws_melee_options) do
+            if (ws.lvl == settings.target_sc_level) then
+                ws_melee = ws
+            end
+        end
+        for _, ws in pairs(ws_ranged_options) do
+            if (ws.lvl == settings.target_sc_level) then
+                ws_ranged = ws
+            end
+        end
+        debug_message("Target Melee options: "..tostring(#ws_melee_options).." Melee WS: "..tostring(ws_melee))
+        debug_message("Target Ranged options: "..tostring(#ws_ranged_options).." Ranged WS: "..tostring(ws_ranged))
+        if (ws_ranged and settings.use_ranged and settings.prefer_ranged) then
+            return ws_ranged
+        elseif (ws_melee and dist <= 4) then -- Don't waste ammo if we're in melee range and ranged WSs aren't preferred
+            return ws_melee
+        elseif (ws_ranged and settings.use_ranged) then -- Melee WSs aren't an option, if ranged allowed go for it
+            return ws_ranged
+        end
+        -- No WSs can close at our target level, check other allowed closing levels
+        for _, ws in pairs(ws_melee_options) do
+            if (settings.close_levels[ws.lvl] == true) then
+                if (ws_melee == nil or ws.lvl > ws_melee.lvl) then
+                    ws_melee = ws
+                end
+            end
+        end
+        for _, ws in pairs(ws_ranged_options) do
+            if (settings.close_levels[ws.lvl] == true) then
+                if (ws_ranged == nil or ws.lvl > ws_ranged.lvl) then
+                    ws_ranged = ws
+                end
+            end
+        end
+        debug_message("Other Melee options: "..tostring(#ws_melee_options).." Melee WS: "..tostring(ws_melee))
+        debug_message("Other Ranged options: "..tostring(#ws_ranged_options).." Ranged WS: "..tostring(ws_ranged))
+        debug_message("Distance: "..tostring(dist).." is "..(dist>4 and "not " or "").." in melee range")
+        debug_message("WS: "..tostring(ws_melee)..": "..tostring(ws_melee and ws_melee.lvl or ""))
+        if (ws_ranged and settings.close_levels[ws_ranged.lvl] and settings.use_ranged and settings.prefer_ranged) then
+            return ws_ranged
+        elseif (ws_melee and settings.close_levels[ws_melee.lvl] and dist <= 4) then -- Don't waste ammo if we're in melee range and ranged WSs aren't preferred
+            return ws_melee
+        elseif (ws_ranged and settings.close_levels[ws_ranged.lvl] and settings.use_ranged) then -- Melee WSs aren't an option, if ranged allowed go for it
+            return ws_ranged
+        end
+    end
+    return nil
 end -- get_weaponskill()
 
 function use_weaponskill(ws_name) 
@@ -536,102 +629,150 @@ function use_weaponskill(ws_name)
 end
 
 function get_weapon_name()
-	local items,weapon,bag = nil
-	items = windower.ffxi.get_items()
-	weapon,bag = items.equipment.main, items.equipment.main_bag
-
-	if (weapon == nil or bag == nil or items == nil) then
-		message("Missing weapon data: "..tostring(weapon).." - "..tostring(items).." - "..tostring(bag))
-		return
-	end
-
-	local weapon_name = 'Empty'
-	if weapon ~= 0 then  --0 => nothing equipped
-		weapon_name = res.items[items[bags[bag]][weapon].id].en
-	end
-
-	if weapon_name:endswith("+1") or weapon_name:endswith("+2") or weapon_name:endswith("+3") then
-		weapon_name = weapon_name:slice(1, -4)
-	end
-	return weapon_name:lower():split("'"):concat(""):split(" "):concat("_")
+    local items = windower.ffxi.get_items()
+    if not items or not items.equipment then
+        message("Cannot get items data")
+        return "unknown_weapon"
+    end
+    
+    local weapon, bag = items.equipment.main, items.equipment.main_bag
+    
+    if not weapon or not bag or not bags[bag] or not items[bags[bag]] then
+        message("Missing weapon data: " .. 
+                tostring(weapon) .. " - " .. 
+                tostring(items) .. " - " .. 
+                tostring(bag))
+        return "unknown_weapon"
+    end
+    
+    local weapon_name = 'Empty'
+    if weapon ~= 0 then  --0 => nothing equipped
+        local item_data = items[bags[bag]][weapon]
+        if item_data and item_data.id and res.items[item_data.id] then
+            weapon_name = res.items[item_data.id].en
+        end
+    end
+    
+    if weapon_name:endswith("+1") or weapon_name:endswith("+2") or weapon_name:endswith("+3") then
+        weapon_name = weapon_name:slice(1, -4)
+    end
+    return weapon_name:lower():split("'"):concat(""):split(" "):concat("_")
 end
 
 function open_skillchain()
-	player = windower.ffxi.get_player()
-	local mob = windower.ffxi.get_mob_by_target("t")
-	if (mob == nil or not active or player.status ~= 1 or player.vitals.tp < 1000) then return end
-	
-	weapon_name = get_weapon_name()
+    player = windower.ffxi.get_player()
+    if not player then 
+        debug_message("Cannot open skillchain: No player data")
+        return 
+    end
+    
+    local mob = windower.ffxi.get_mob_by_target("t")
+    if (mob == nil or not active or player.status ~= 1 or player.vitals.tp < 1000) then return end
+    
+    local weapon_name = get_weapon_name()
 
-	local job = player.main_job:lower()
-	if (settings.sc_openers[job] ~= nil and settings.sc_openers[job][weapon_name] ~= nil) then
-		local ws_name = settings.sc_openers[job][weapon_name]
-		local ws_range = res.weapon_skills:with('name', ws_name).range*2
-		local dist = mob.distance:sqrt()
+    local job = player.main_job:lower()
+    if (settings.sc_openers[job] ~= nil and settings.sc_openers[job][weapon_name] ~= nil) then
+        local ws_name = settings.sc_openers[job][weapon_name]
+        
+        -- Add safety check for weapon skill lookup
+        local ws_data = res.weapon_skills:with('name', ws_name)
+        if not ws_data then
+            debug_message("Cannot open skillchain: Weapon skill data not found for " .. ws_name)
+            return
+        end
+        
+        local ws_range = ws_data.range * 2
+        local dist = mob.distance:sqrt()
 
-		debug_message("Opening SC with "..title_case(ws_name).." Job: "..job:upper().." Weapon: "..title_case(weapon_name))
-		ws_range = ws_range + mob.model_size/2 + windower.ffxi.get_mob_by_id(player.id).model_size/2
-		if (dist > ws_range) then return end -- Don't throw away TP on out of range mobs
+        debug_message("Opening SC with "..title_case(ws_name).." Job: "..job:upper().." Weapon: "..title_case(weapon_name))
+        ws_range = ws_range + mob.model_size/2 + windower.ffxi.get_mob_by_id(player.id).model_size/2
+        if (dist > ws_range) then return end -- Don't throw away TP on out of range mobs
 
-		use_weaponskill(ws_name)
-	end
+        use_weaponskill(ws_name)
+    end
 end
 
 --[[ Windower Events ]]--
 windower.register_event('prerender', function(...)
-	local time = os.clock()
-	local delta_time = time - last_frame_time
-	last_frame_time = time
-	ws_window = ws_window + delta_time
+    local time = os.clock()
+    
+    -- Quick check for busy state first (happens frequently)
+    if (is_busy > 0) then
+        local delta_time = time - last_frame_time
+        is_busy = (is_busy - delta_time) <= 0 and 0 or (is_busy - delta_time)
+        last_frame_time = time
+    end
+    
+    -- Only perform the rest of operations at specified frequency
+    if (last_check_time + settings.update_frequency > time) then
+        return
+    end
+    
+    -- Update timing variables
+    local delta_time = time - last_frame_time
+    last_frame_time = time
+    last_check_time = time
+    
+    -- Update skillchain window timer
+    if sc_opened then
+        ws_window = ws_window + delta_time
+        
+        -- Check if window expired
+        if (ws_window >= settings.max_ws_window) then
+            debug_message("Skillchain window expired: "..ws_window)
+            skillchain_closed()
+            return
+        end
+        
+        -- Check if we can close the skillchain
+        if (weaponskill_ready() and ws_window > settings.min_ws_window and ws_window < settings.max_ws_window) then
+            -- Get target mob with safety
+            local mob = windower.ffxi.get_mob_by_target("t")
+            
+            -- Various expiration conditions
+            if (ws_window > sc_effect_duration) then
+                debug_message("WS window expired, sc effect wore.")
+                skillchain_closed()
+                return
+            elseif (not mob) then
+                debug_message("Target lost, closing skillchain")
+                skillchain_closed()
+                return
+            elseif (not mob.hpp) then
+                debug_message("Target HP data unavailable")
+                skillchain_closed()
+                return
+            elseif (mob.hpp <= 0) then
+                debug_message("Target defeated")
+                skillchain_closed()
+                return
+            elseif (last_attempt + settings.attempt_delay > time) then 
+                return
+            end
+            
+            last_attempt = time
+            local ws = get_weaponskill()
+            
+            if (ws) then
+                debug_message("Closer found: "..ws.name)
+                use_weaponskill(ws.name)
+                return
+            else
+                debug_message("No closer found")
+                return
+            end
+        end
+    end
 
-	if (is_busy > 0) then
-		is_busy = (is_busy - delta_time) < 0 and 0 or (is_busy - delta_time)
-	end
-
-	if (last_check_time + settings.update_frequency > time) then
-		return
-	end
-	last_check_time = time
-
-	if (sc_opened and ws_window >= settings.max_ws_window) then
-		debug_message("Skillchain window expired: "..ws_window)
-		skillchain_closed()
-		return
-	end
-
-	local mob = windower.ffxi.get_mob_by_target("t")
-	if (sc_opened and weaponskill_ready() and ws_window > settings.min_ws_window and ws_window < settings.max_ws_window) then
-		if (ws_window > sc_effect_duration) then
-			debug_message("WS window expired, sc effect wore.")
-			skillchain_closed()
-			return
-		elseif (mob == nil or mob.hpp <= 0) then
-			skillchain_closed()
-			return
-		elseif (last_attempt + settings.attempt_delay > time) then 
-			return
-		end
-		last_attempt = time
-		local ws = get_weaponskill()
-		if (ws) then
-			debug_message("Closer found: "..ws.name)
-			use_weaponskill(ws.name)
-			return
-		else -- There isn't a valid WS to close this chain, we can stop checking by closing wht window
-			debug_message("No closer found")
-			return
-		end
-	end
-
-	-- If we can't close a SC then try to open one, if there a SC effect or we opt to ignore SC effects
-	if (settings.open_sc and not (sc_opened and settings.wait_to_open)) then
-		if (last_attempt + settings.attempt_delay > time) then 
-			return
-		end
-		last_attempt = time
-		open_skillchain()
-		return
-	end
+    -- If we can't close a SC then try to open one
+    if (settings.open_sc and not (sc_opened and settings.wait_to_open)) then
+        if (last_attempt + settings.attempt_delay > time) then 
+            return
+        end
+        last_attempt = time
+        open_skillchain()
+    end
 end)
 
 -- Check for skillchain effects applied, this can get wonky if/when a group is skillchaining on multiple mobs at once
@@ -651,17 +792,17 @@ windower.register_event('incoming chunk', function(id, packet, data, modified, i
 
 		if (data:unpack('I', 6) == player.id) then 
 			if start_act:contains(category) then
-				if param == 24931 then                  -- Begin Casting/WS/Item/Range
+				if param == ACTION_BEGIN_WS then        -- Begin Casting/WS/Item/Range
 					is_busy = 0
 					is_casting = true
-				elseif param == 28787 then              -- Failed Casting/WS/Item/Range
+				elseif param == ACTION_FAILED_WS then   -- Failed Casting/WS/Item/Range
 					is_casting = false
-					is_busy = failed_cast_delay
+					is_busy = FAILED_CAST_DELAY
 				end
-			elseif category == 6 then                   -- Use Job Ability
-				is_busy = ability_delay
-			elseif category == 4 then                   -- Finish Casting
-				is_busy = after_cast_delay
+			elseif category == ACTION_JOB_ABILITY then  -- Use Job Ability
+				is_busy = ABILITY_DELAY
+			elseif category == ACTION_FINISH_CAST then  -- Finish Casting
+				is_busy = AFTER_CAST_DELAY
 				is_casting = false
 			elseif finish_act:contains(category) then   -- Finish Range/WS/Item Use
 				is_busy = 0
@@ -671,7 +812,7 @@ windower.register_event('incoming chunk', function(id, packet, data, modified, i
 	end
 end)
 
-categories = S{
+local categories = S{
     'weaponskill_finish',
     'spell_finish',
     'job_ability',
@@ -681,24 +822,66 @@ categories = S{
 }
 
 function action_handler(act)
+    -- Validate act parameter
+    if not act then 
+        return 
+    end
+    
     local actionpacket = ActionPacket.new(act)
+    if not actionpacket then 
+        return 
+    end
+    
     local category = actionpacket:get_category_string()
+    if not category then
+        return
+    end
 
     if not categories:contains(category) or act.param == 0 then
         return
     end
 
     local actor = actionpacket:get_id()
-    local target = actionpacket:get_targets()()
-    local action = target:get_actions()()
+    if not actor then 
+        return 
+    end
+    
+    -- Use pcall to handle any errors in target retrieval
+    local status, target = pcall(function() return actionpacket:get_targets()() end)
+    if not status or not target then
+        return
+    end
+    
+    -- Use pcall to handle any errors in action retrieval
+    local status, action = pcall(function() return target:get_actions()() end)
+    if not status or not action then
+        return
+    end
+    
     local message_id = action:get_message_id()
     local add_effect = action:get_add_effect()
-    --local basic_info = action:get_basic_info()
-    local param, resource, action_id, interruption, conclusion = action:get_spell()
-    local ability = skills[resource] and skills[resource][action_id]
+    
+    -- Check for nil before accessing spell data
+    local param, resource, action_id, interruption, conclusion
+    status, param, resource, action_id, interruption, conclusion = pcall(function() 
+        return action:get_spell() 
+    end)
+    
+    if not status then
+        return
+    end
+    
+    local ability = resource and action_id and skills[resource] and skills[resource][action_id]
 
     if add_effect and conclusion and skillchain_ids:contains(add_effect.message_id) then
         local skillchain = add_effect.animation:ucfirst()
+        
+        -- Add safety check for skillchain lookup
+        if not sc_info[skillchain] then
+            debug_message("Unknown skillchain type: " .. tostring(skillchain))
+            return
+        end
+        
         local level = sc_info[skillchain].lvl
         local reson = resonating[target.id]
         local delay = ability and ability.delay or 3
@@ -795,7 +978,7 @@ windower.register_event('addon command', function(...)
 		local job = player.main_job:lower()
 		settings.sc_openers[job] = settings.sc_openers[job] or {}
 
-		ws_name = title_case(T(arg):slice(2, #arg):concat(" "))
+		local ws_name = title_case(T(arg):slice(2, #arg):concat(" "))
 		
 		if (ws_name == "Chant Du Cygne") then
 			ws_name = "Chant du Cygne"
@@ -845,7 +1028,7 @@ windower.register_event('addon command', function(...)
 		end
 		local n = tonumber(arg[2])
 		if (n ~= nil and n >= 1000 and n <= 3000) then
-			settings.min_tp = tonumber(arg[2])
+			settings.min_tp = n
 		else
 			message("TP must be a number between 1000 and 3000")
 			return
@@ -857,6 +1040,10 @@ windower.register_event('addon command', function(...)
 			message("Usage: autoSC minwin #")
 			return
 		end
+		-- Ensure the value is reasonable
+        if n > 60 then
+            message("Warning: Very large min window value: " .. n .. " seconds")
+        end
 		settings.min_ws_window = n
 		settings:save('all')
 	elseif (cmd == 'maxwin') then
@@ -865,6 +1052,11 @@ windower.register_event('addon command', function(...)
 			message("Usage: autoSC maxwin #")
 			return
 		end
+		-- Ensure max is greater than min
+        if n < settings.min_ws_window then
+            message("Warning: Max window smaller than min window - adjusting")
+            n = settings.min_ws_window + 0.5
+        end
 		settings.max_ws_window = n
 		settings:save('all')
 	elseif (cmd == 'retry') then

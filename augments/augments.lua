@@ -6,12 +6,13 @@ _addon.commands = { 'augs', 'augments' }
 require('logger')
 res = require('resources')
 local extdata = require('extdata')
+local windower = require('windower')
 
 send_command = windower.send_command
 
 function work(search)
     
-    log('Results: (%s)':format(search))
+    log(('Results: (%s)'):format(search))
     local items = {}
    
     -- Gather Unity items
@@ -34,7 +35,7 @@ function work(search)
                         augs = 'none'
                     end
                     
-                    log('%s: %s (%s)':format(bag.name,name:color(258),augs))
+                    log(('%s: %s (%s)'):format(bag.name,name:color(258),augs))
                     
                 end
             end
@@ -46,7 +47,7 @@ windower.register_event('addon command', function(...)
     local arg = T({...}):concat(' '):lower()
     if arg == 'r' then
         log('reloading.')
-        send_command('wait 0.1;lua r %s':format(_addon.name))
+        send_command(('wait 0.1;lua r %s'):format(_addon.name))
         return
     end
 

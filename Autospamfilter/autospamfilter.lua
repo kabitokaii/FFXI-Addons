@@ -12,7 +12,7 @@ texts = require('texts')
 config = require('config')
 packets = require('packets')
 
--- This is heurstic based spam filter
+-- This is heuristic based spam filter
 
 -- It doesn't care about words so much as the same repeated message over and over again
 -- It does employ an initial spam word check though
@@ -203,14 +203,14 @@ local function IsOldLFG(olfg)
 end
 
 local function IsLFG(sender, cleaned)
-    if (not settings.lfgwindow.shown) then
+    if not settings.lfgwindow.shown then
         return false
     end
 
     local previous = lfg[sender]
 
-    if (IsLFGText(cleaned)) then
-        if (not previous) then
+    if IsLFGText(cleaned) then
+        if not previous then
             previous = {sender, cleaned, os.time()}
         end
 
@@ -219,7 +219,7 @@ local function IsLFG(sender, cleaned)
         lfg[sender] = previous
         
         return true
-    elseif (previous and IsLFGFull(cleaned)) then
+    elseif previous and IsLFGFull(cleaned) then
         lfg[sender] = nil
     end
 
@@ -228,35 +228,43 @@ end
 
 local function GetLFGText()
     local str = 'LFG/LFM Status:'
+    local to_remove = {}
+    
     for k,v in pairs(lfg) do
         local isOld = IsOldLFG(v)
 
-        if (not isOld) then
+        if not isOld then
             local sender = v[1]
             local message = v[2]
             local time = GetFormattedTime(v[3])
-            str = str..'\n <%s> %s - %s':format(sender, message, time)
+            str = str..('\n <%s> %s - %s'):format(sender, message, time)
         else
-            lfg[k] = nil
+            table.insert(to_remove, k)
         end
     end
+    
+    -- Remove expired entries after iteration is complete
+    for _, k in ipairs(to_remove) do
+        lfg[k] = nil
+    end
+    
     return str
 end
 
 local lfg_status = texts.new(GetLFGText(), settings.lfgwindow, settings)
 
 local function prerender()
-    if (settings.lfgwindow.shown) then
+    if settings.lfgwindow.shown then
         lfg_status:show()
     else
         lfg_status:hide()
     end
 
-    if (not settings.active or not settings.lfgwindow.shown) then
+    if not settings.active or not settings.lfgwindow.shown then
         return
     end
 
-    if (os.time() - last_update >= max_update_time) then
+    if os.time() - last_update >= max_update_time then
         last_update = os.time()
         lfg_status:text(GetLFGText())
     end
@@ -266,55 +274,55 @@ local function addon_command(...)
     local commands = {...}
     commands[1] = commands[1] and commands[1]:lower()
 
-    if (not commands[1]) then
+    if not commands[1] then
         return
     end
 
-    if (commands[1] == 'active') then
-        if (settings.active) then
+    if commands[1] == 'active' then
+        if settings.active then
             settings.active = false
         else
             settings.active = true
         end
-    elseif (commands[1] == 'lfg') then
-        if (settings.lfgwindow.shown) then
+    elseif commands[1] == 'lfg' then
+        if settings.lfgwindow.shown then
             settings.lfgwindow.shown = false
         else
             settings.lfgwindow.shown = true
         end
-    elseif (commands[1] == 'save') then
+    elseif commands[1] == 'save' then
         settings:save()
-	elseif (commands[1] == 'reset') then
-		lfg = {}
-		filtered = {}
+    elseif commands[1] == 'reset' then
+        lfg = {}
+        filtered = {}
     end
 end
 
 local function incoming_chunk(id, data)
-    if (not settings.active) then
+    if not settings.active then
         return
     end
 
     if id == 0x017 then -- 0x017 Is incoming chat.
         local chat = packets.parse('incoming', data)
 
-        if (chat['Mode'] == 3 or chat['Mode'] == 1 or chat['Mode'] == 26) then
+        if chat['Mode'] == 3 or chat['Mode'] == 1 or chat['Mode'] == 26 then
             local sender = chat['Sender Name']
             local cleaned = windower.convert_auto_trans(chat['Message']):lower()
             local spam = IsSpam(cleaned)
 
-            if (not spam and IsLFG(sender, cleaned)) then
+            if not spam and IsLFG(sender, cleaned) then
                 return true
-            elseif (filtered[sender]) then
+            elseif filtered[sender] then
                 local score = filtered[sender]
                 local last = score.last
 
-                if (os.time() >= score.expiration) then
+                if os.time() >= score.expiration then
                     local spam = IsSpam(cleaned)
-                    if (spam) then
+                    if spam then
                         score.total = settings.minscore
-                    elseif (score.total >= settings.minscore) then
-                        if (last == cleaned or IsStillSpam(score.words, cleaned)) then
+                    elseif score.total >= settings.minscore then
+                        if last == cleaned or IsStillSpam(score.words, cleaned) then
                             score.total = score.total + 1
                         else
                             score.total = 0
@@ -328,7 +336,7 @@ local function incoming_chunk(id, data)
 
                 -- Do a fast and quick direct comparison first
                 -- then check deeper
-                if (last == cleaned or IsStillSpam(score.words, cleaned)) then
+                if last == cleaned or IsStillSpam(score.words, cleaned) then
                     score.total = score.total + 1
                 else
                     score.words = GetWords(cleaned)
@@ -338,8 +346,8 @@ local function incoming_chunk(id, data)
 
                 score.total = math.max(0, math.min(score.total, settings.maxscore))
 
-                if (score.total >= settings.minscore) then
-                    return true;
+                if score.total >= settings.minscore then
+                    return true
                 end
             else
                 local score = {}
@@ -349,7 +357,7 @@ local function incoming_chunk(id, data)
                 score.expiration = os.time() + settings.expiration
                 filtered[sender] = score
 
-                if (spam) then
+                if spam then
                     return true
                 end
             end

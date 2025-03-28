@@ -38,13 +38,22 @@ _addon.version = '1.15.07.19'
 require('luau')
 texts = require('texts')
 packets = require('packets')
+res = require('resources')
+
+local is_casting = false
+local is_moving = false
+local nexttime = os.clock()
+local del = 0
+local user_events = nil
+local incoming_chunk = nil
+local outgoing_chunk = nil
 
 default = {
     delay = 4.2,
     actions = false,
     active = true,
-    geo = 'Geo\-Precision',
-    indi = 'Indi\-Precision',
+    geo = 'Geo-Precision',
+    indi = 'Indi-Precision',
     entrust = {},
     min_ws_hp = 20,
     max_ws_hp = 99,
@@ -52,13 +61,10 @@ default = {
     recast={indi={min=20,max=25},buff={min=5,max=10}},
     aug = {lifestream=20},
     text = {text={size=10}},
-    }
+}
 
 settings = config.load(default)
-last_coords = 'fff':pack(0,0,0)
-is_moving = false
-nexttime = os.clock()
-del = 0
+last_coords = string.pack('fff', 0, 0, 0)
 timers = {entrust={},haste={},refresh={}}
 
 equipment = L{
@@ -67,7 +73,7 @@ equipment = L{
     [27451] = 'Azimuth Gaiters',
     [27452] = 'Azimuth Gaiters +1',
     [28637] = 'Lifestream Cape',
-    }
+}
 
 geo_spells = T{
     [768] = {id=768,en="Indi-Regen",mp_cost=37,targets=5},
@@ -130,12 +136,12 @@ geo_spells = T{
     [825] = {id=825,en="Geo-Slow",mp_cost=189,targets=32},
     [826] = {id=826,en="Geo-Paralysis",mp_cost=215,targets=32},
     [827] = {id=827,en="Geo-Gravity",mp_cost=348,targets=32},
-    }
+}
 
 spell_ids = L{
     [57] = {id=57,enl='haste',dur=180,levels={[3]=40,[5]=48}},
     [109] = {id=109,enl='refresh',dur=150,levels={[5]=41,[22]=62}},
-    }
+}
 
 display_box = function()
     local str
@@ -145,21 +151,21 @@ display_box = function()
         str = ' AutoGEO [Off] '
     end
     if settings.active then
-        str = settings.geo and str..'\n %s ':format(settings.geo) or str
-        str = settings.indi and str..'\n %s ':format(settings.indi) or str
+        str = settings.geo and str..('\n %s '):format(settings.geo) or str
+        str = settings.indi and str..('\n %s '):format(settings.indi) or str
         if settings.entrust.target then
-            str = str..'\n Entrust: %s: \n  [%s] ':format(settings.entrust.target:ucfirst(),settings.entrust.ma)
+            str = str..('\n Entrust: %s: \n  [%s] '):format(settings.entrust.target:ucfirst(),settings.entrust.ma)
         end
         for k,v in ipairs(settings.buffs.haste) do
-           str = str..'\n Haste:[%s]':format(v:ucfirst())
+           str = str..('\n Haste:[%s]'):format(v:ucfirst())
         end
         for k,v in ipairs(settings.buffs.refresh) do
-            str = str..'\n Refresh:[%s]':format(v:ucfirst())
+            str = str..('\n Refresh:[%s]'):format(v:ucfirst())
         end
         for k,v in pairs(settings.recast) do
-            str = str..'\n Recast %s:[%d-%d]':format(k:ucfirst(),v.min,v.max)
+            str = str..('\n Recast %s:[%d-%d]'):format(k:ucfirst(),v.min,v.max)
         end
-        str = str..'\n Delay:[%d] ':format(settings.delay)
+        str = str..('\n Delay:[%d] '):format(settings.delay)
     end
     return str
 end
@@ -237,7 +243,8 @@ end
 
 function valid_target(targ,dst)
     for ind,member in pairs(windower.ffxi.get_party()) do
-        if type(member) == 'table' and member.mob and member.mob.name:lower() == targ:lower() and math.sqrt(member.mob.distance) < dst and not member.mob.charmed and member.mob.hpp > 0 then
+        if type(member) == 'table' and member.mob and member.mob.name:lower() == targ:lower() and 
+           math.sqrt(member.mob.distance) < dst and not member.mob.charmed and member.mob.hpp > 0 then
            return true
         end
     end
@@ -261,10 +268,10 @@ function addon_command(...)
             settings.actions = false
         elseif commands[1] == 'entrust' and commands[2] then
             if commands[3] then
-                local spell = geo_spells:with('en','Indi\-'..commands[3]:ucfirst())
+                local spell = geo_spells:with('en','Indi-'..commands[3]:ucfirst())
                 if spell then
                     settings.entrust = {target=commands[2]:lower(),ma=spell.en}
-                    addon_message('Entrust %s with %s':format(commands[2],spell.en))
+                    addon_message(('Entrust %s with %s'):format(commands[2],spell.en))
                 else
                     addon_message('Invalid spell name.')
                 end
@@ -279,7 +286,7 @@ function addon_command(...)
             if commands[4] and tonumber(commands[4]) then
                 settings.recast[commands[2]]['max'] = tonumber(commands[4])
             end
-            addon_message('%s recast set to min: %s max: %s':format(commands[2],settings.recast[commands[2]]['min'],settings.recast[commands[2]]['max']))
+            addon_message(('%s recast set to min: %s max: %s'):format(commands[2],settings.recast[commands[2]]['min'],settings.recast[commands[2]]['max']))
         elseif S{'haste','refresh'}:contains(commands[1]) and commands[2] then
             local ind = settings.buffs[commands[1]]:find(commands[2])
             if not commands[3] then
@@ -295,30 +302,30 @@ function addon_command(...)
             end
         elseif commands[1] == 'aug' and settings.aug[commands[2]] and commands[3] and tonumber(commands[3]) then
             settings.aug['lifestream'] = tonumber(commands[3])
-            addon_message('Lifestream Cape = Indi eff. dur. +%s.':format(commands[3]))
+            addon_message(('Lifestream Cape = Indi eff. dur. +%s.'):format(commands[3]))
         elseif type(settings[commands[1]]) == 'string' and commands[2] then
             if commands[2] == 'off' then   
                 settings[commands[1]] = nil
-                addon_message('%s will not be used':format(commands[1]))
+                addon_message(('%s will not be used'):format(commands[1]))
             else
-                local spell = geo_spells:with('en',commands[1]:ucfirst()..'\-'..commands[2]:ucfirst())
+                local spell = geo_spells:with('en',commands[1]:ucfirst()..'-'..commands[2]:ucfirst())
                 if spell then
                     settings[commands[1]] = spell.en
-                    addon_message('%s set to %s':format(commands[1],commands[2]))
+                    addon_message(('%s set to %s'):format(commands[1],commands[2]))
                 else
                     addon_message('Invalid spell name.')
                 end
             end
         elseif type(settings[commands[1]]) == 'number' and commands[2] and tonumber(commands[2]) then
             settings[commands[1]] = tonumber(commands[2])
-            addon_message('%s is now set to %d':format(commands[1],settings[commands[1]]))  
+            addon_message(('%s is now set to %d'):format(commands[1],settings[commands[1]]))  
         elseif type(settings[commands[1]]) == 'boolean' then
             if (not commands[2] and settings[commands[1]] == true) or (commands[2] and commands[2] == 'off') then
                 settings[commands[1]] = false
             elseif (not commands[2]) or (commands[2] and commands[2] == 'on') then
                 settings[commands[1]] = true
             end
-            addon_message('%s %s':format(commands[1],settings[commands[1]] and 'On' or 'Off'))
+            addon_message(('%s %s'):format(commands[1],settings[commands[1]] and 'On' or 'Off'))
         elseif commands[1] == 'save' then
             settings:save()
         elseif commands[1] == 'eval' then
@@ -326,7 +333,6 @@ function addon_command(...)
         end
     end
     geo_status:text(display_box())
-   -- windower.add_to_chat(207, str)
 end
 
 function calculate_buffs(curbuffs)
@@ -340,48 +346,72 @@ function calculate_buffs(curbuffs)
 end
 
 function use_JA(str,ta)
-    windower.send_command('input /ja "%s" %s':format(str,ta))
+    windower.send_command(('input /ja "%s" %s'):format(str,ta))
     del = 1.2
 end
 
 function use_MA(str,ta)
-    windower.send_command('input /ma "%s" %s':format(str,ta))
+    windower.send_command(('input /ma "%s" %s'):format(str,ta))
     del = settings.delay
 end
 
 function get_equip(slot)
     local item = windower.ffxi.get_items().equipment
-    return equipment[windower.ffxi.get_items(item[slot..'_bag'],item[slot]).id] or ''
+    if not item then return '' end
+    
+    local slot_item = windower.ffxi.get_items(item[slot..'_bag'],item[slot])
+    if not slot_item or not slot_item.id then return '' end
+    
+    return equipment[slot_item.id] or ''
 end
 
 function check_incoming_chunk(id,original,modified,injected,blocked)
     if id == 0x028 then
         local packet = packets.parse('incoming', original)
-        if packet.Actor ~= windower.ffxi.get_mob_by_target('me').id then return false end
+        if not packet or not packet.Actor then return false end
+        
+        local player = windower.ffxi.get_mob_by_target('me')
+        if not player or packet.Actor ~= player.id then return false end
+        
         if packet.Category == 4 then
             -- Finish Casting
             is_casting = false
             del = settings.delay
             if packet.Param >= 768 and packet.Param <= 797 then
                 local spell = geo_spells[packet.Param]
+                if not spell then return false end
+                
                 local mult = 1
-                local dur = 180 + windower.ffxi.get_player().job_points.geo.indocolure_spell_effect_dur * 2
-                if get_equip('legs') == 'Bagua Pants +1' then dur = dur + 20 end
-                if get_equip('legs') == 'Bagua Pants' then dur = dur + 12 end
-                if get_equip('legs') == 'Azimuth Gaiters' then dur = dur + 15 end
-                if get_equip('legs') == 'Azimuth Gaiters +1' then dur = dur + 20 end
-                if get_equip('back') == 'Lifestream Cape' then mult = mult + settings.aug.lifestream * 0.01 end
+                local dur = 180 + (windower.ffxi.get_player().job_points.geo.indocolure_spell_effect_dur or 0) * 2
+                local leg_name = get_equip('legs')
+                
+                if leg_name == 'Bagua Pants +1' then dur = dur + 20
+                elseif leg_name == 'Bagua Pants' then dur = dur + 12
+                elseif leg_name == 'Azimuth Gaiters' then dur = dur + 15
+                elseif leg_name == 'Azimuth Gaiters +1' then dur = dur + 20
+                end
+                
+                if get_equip('back') == 'Lifestream Cape' then 
+                    mult = mult + settings.aug.lifestream * 0.01 
+                end
+                
                 dur = math.floor(mult*dur)
+                
                 if packet.Actor == packet['Target 1 ID'] then
                     timers.indi = {spell=spell.en,ts=os.time()+dur}
                 else
                     local target = windower.ffxi.get_mob_by_id(packet['Target 1 ID'])
-                    timers.entrust[target.name:lower()] = {spell=spell.en,ts=os.time()+dur}
+                    if target then
+                        timers.entrust[target.name:lower()] = {spell=spell.en,ts=os.time()+dur}
+                    end
                 end
             elseif spell_ids[packet.Param] then
                 local spell = spell_ids[packet.Param]
                 local target = windower.ffxi.get_mob_by_id(packet['Target 1 ID'])
-                timers[spell.enl:lower()][target.name:lower()] = os.time()+spell.dur 
+                if target and spell and spell.enl then
+                    if not timers[spell.enl:lower()] then timers[spell.enl:lower()] = {} end
+                    timers[spell.enl:lower()][target.name:lower()] = os.time()+spell.dur
+                end
             end
         elseif L{3,5,11}:contains(packet.Category) then -- 2 Ranged Attacks
             -- Finish Casting/WS/Item Use

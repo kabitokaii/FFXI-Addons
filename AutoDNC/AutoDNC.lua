@@ -3,6 +3,8 @@ _addon.version = '1.15.04.25'
 _addon.author = 'SblmS2J'
 _addon.commands = {'AutoDNC','DNC'}
 
+require('logger')
+windower = require('windower')
 res = require('resources')
 config = require('config')
 packets = require('packets')
@@ -18,7 +20,6 @@ _static = {
         minwshp = 30,
         maxwshp = 100,
         samba = 1,
-        --waltz = {p0=true,p1=true,p2=true,p3=true,p4=true,p5=true}
         waltz = 0,
         waltzpt = 0,
         na = 0,
@@ -37,8 +38,15 @@ time = clock
 delay = 0
 JA_del = 1.2
 WS_del = 4
+
+-- Define staggered table at module level to ensure it's always available
+staggered = {}
+
+function target_change(new_target_id, old_target_id)
+    -- Both parameters are optional
+    -- new_target_id and old_target_id are arguments from the target change event
+    -- but might be nil when called directly from code
     
-function target_change()
     local mob = windower.ffxi.get_mob_by_target('t')
     local targ = windower.ffxi.get_mob_by_target('st', 't')
     if not setting.silent and setting.proc ~= 0 then
@@ -79,7 +87,7 @@ end
 windower.register_event('target change', target_change)
 
 windower.register_event('incoming text', function(old,new,color,newcolor)   
-    if proc ~= 0 then
+    if setting.proc ~= 0 then
         local play = windower.ffxi.get_player()
         if play and string.find(old,(play.name).. '\'s attack staggers the fiend%p') then
             local targ = windower.ffxi.get_mob_by_target('t')
@@ -93,9 +101,13 @@ windower.register_event('incoming text', function(old,new,color,newcolor)
             elseif ltarg then
                 targ = ltarg
             end
-            table.insert(staggered, targ.id)
-            target_change()
-            windower.send_ipc_message('add'..targ.id)
+            
+            if targ then
+                table.insert(staggered, targ.id)
+                target_change(nil,nil)
+                windower.send_ipc_message('add'..targ.id)
+                windower.send_ipc_message('add'..targ.id)
+            end
         end
     end
 end)
@@ -189,16 +201,18 @@ function waltz(play,recast)
             end
         end
     end
-    if (play.vitals.tp >= 200 and setting.Hwaltz == 1 and recast[215] == 0) and
-    ((play.status == 1) and (buffs.paralysis or buffs.blind or buffs.disease or buffs.slow)) or 
-    ((play.status == 0) and (buffs.paralysis or buffs.bind)) then
+    if ((play.vitals.tp >= 200 and setting.na == 1 and recast[215] == 0) and
+       ((play.status == 1) and (buffs.paralysis or buffs.blind or buffs.disease or buffs.slow))) or 
+       ((play.status == 0) and (buffs.paralysis or buffs.bind)) then
         autoJA('Healing waltz', '<me>')
         return true
     end
     return false
 end
 
-function buff_active()
+function buff_active(buff_id, gain)
+    -- Accept arguments from buff events
+    -- buff_id and gain are used when this is called as an event handler
     buffs = {}
     buffs['Finishing Move'] = 0
     for i,v in ipairs(windower.ffxi.get_player().buffs) do
@@ -217,12 +231,12 @@ end
 windower.register_event('gain buff', 'lose buff', buff_active)
 
 function autoJA(str,ta)
-    windower.send_command('input /ja "%s" %s':format(str,ta))
+    windower.send_command(('input /ja "%s" %s'):format(str,ta))
     delay = JA_del
 end
 
 function autoWS(str)
-    windower.send_command('input /ws "%s" <t>':format(str))
+    windower.send_command(('input /ws "%s" <t>'):format(str))
     delay = WS_del
 end
 
@@ -230,41 +244,46 @@ windower.register_event('incoming chunk', function(id, data)
     if id == 0x029 then
         action_message = packets.parse('incoming', data)
         if (action_message['Message'] == 6) or (action_message['Message'] == 20) then
-            for k, v in ipairs(staggered) do
+            -- Iterate through staggered table to find matching targets
+            for k,v in ipairs(staggered) do
                 if v == action_message['Target'] then
                     windower.send_ipc_message('rem'..action_message['Target'])
                     table.remove(staggered, k)
-                    target_change()
+                    target_change()  -- Single call is sufficient
+                    break -- Stop iterating once found
                 end
-            end 
+            end
         end   
     end
 end)
 
-function proc_table(msg)
-    local id = msg:slice(4)
-    local msg = tonumber(msg:slice(1, 3))
-    if msg == 'add' then
+function proc_table(message, sender)
+    -- Accept sender argument from IPC event
+    local command = string.sub(message, 1, 3)
+    local id = tonumber(string.sub(message, 4))
+    if command == 'add' then
         for k,v in ipairs(staggered) do
             if v == id then
-            return
+                return -- Already in table, exit
             end
         end
         table.insert(staggered, id)
-    elseif msg == 'rem' then
+    elseif command == 'rem' then
         for k,v in ipairs(staggered) do
             if v == id then
-                table.remove(staggered, k)
+                table.remove(staggered, k) -- Actually remove the item
+                break -- Exit loop after removing
             end
         end
     end
-    target_change()
+    target_change() -- Single call is sufficient
 end
 windower.register_event('ipc message', proc_table)
 
 windower.register_event('load',function ()
     staggered = {}
-    buff_active()
+    buff_active(nil, nil)
+    windower.text.create('proc_box')
     windower.text.create('proc_box')
     windower.text.set_bg_color('proc_box',200,30,30,30)
     windower.text.set_color('proc_box',255,200,200,200)
@@ -277,14 +296,13 @@ end)
 windower.register_event('unload',function ()
     windower.text.delete('proc_box')
 end)
-
 windower.register_event('zone change',function()
     staggered = {}
-    buff_active()
+    buff_active(nil, nil)
 end)
 
 function addon_message(...)
-    windower.add_to_chat(0,'%s: %s':format(_addon.name,table.concat({...},', ')))
+    windower.add_to_chat(0,('%s: %s'):format(_addon.name,table.concat({...},', ')))
 end
 
 windower.register_event('addon command', function(...)
@@ -298,13 +316,11 @@ windower.register_event('addon command', function(...)
         setting.actions = 0
         addon_message('Actions Off')
     elseif commands[1] == 'load' then
-        setting = config.load(defaults)			
+        setting = config.load(_static.default)  -- Fixed variable reference
         addon_message('Global setting Loaded.')
     elseif commands[1]:lower() == 'save' then
         setting:save()			
         addon_message('setting saved.')		
-        --config.save(setting, 'all')
-        --addon_message('Global setting Saved.')
     elseif setting[commands[1]] then
         if not commands[2] then
             if _static.dual_toggle[commands[1]] then
@@ -339,11 +355,11 @@ windower.register_event('addon command', function(...)
             end
             if commands[1] == 'proc' then
                 if commands[2]:lower() == 'ja' then
-                    settings.ja = 1
-                    settings.ws = 0
+                    setting.ja = 1
+                    setting.ws = 0
                 elseif commands[2]:lower() == 'ws' then
-                    settings.ws = 1
-                    settings.ja = 0
+                    setting.ws = 1
+                    setting.ja = 0
                 end
             end
         end
@@ -379,5 +395,8 @@ windower.register_event('addon command', function(...)
         elseif commands[2]:lower() == 'active' then
             addon_message('active [ actions | ws | ja | samba | min/maxwshp | setws | waltz | proc | silent ]- Displays Active setting.')
         end
+    else
+        -- Add error handling for unknown commands
+        addon_message('Unknown command: ' .. commands[1] .. '. Type "//dnc help" for a list of commands.')
     end
 end)

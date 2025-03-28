@@ -24,8 +24,8 @@
 -- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 -- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  
-config = require ('config')
-require ('logger')
+config = require('config')
+require('logger')
  
 _addon.name     = 'AnnounceTarget'
 _addon.author   = 'JoshK6656, Sechs'
@@ -38,16 +38,24 @@ defaults.AutoAnnounce = false
  
 settings = config.load(defaults)
  
-adherents_map = {['Steadfast Adherent']="PLD, DEF+", ['Furtive Adherent']="WHM, MDB+", ['Occult Adherent']="WAR, EVA+",
-        ['Fleet Adherent']="WAR, Haste+", ['Brawny Adherent']="DRK, ATK+", ['Martial Adherent']="DRK,Regain+",
-        ['Honed Adherent']="RDM, Fast Cast+", ['Insidious Adherent']="RDM, MEVA+", ['Hexbreaking Adherent']="BLM, MAB+"}
-chatmodes = S{'say','party','linkshell','linkshell2','shout','echo','s','p','l','l2','sh'}
-false_values = S{'false','off','f','0'}
-true_values = S{'true','on','t','1'}
+adherents_map = {
+    ['Steadfast Adherent'] = "PLD, DEF+", 
+    ['Furtive Adherent'] = "WHM, MDB+", 
+    ['Occult Adherent'] = "WAR, EVA+",
+    ['Fleet Adherent'] = "WAR, Haste+", 
+    ['Brawny Adherent'] = "DRK, ATK+", 
+    ['Martial Adherent'] = "DRK, Regain+",
+    ['Honed Adherent'] = "RDM, Fast Cast+", 
+    ['Insidious Adherent'] = "RDM, MEVA+", 
+    ['Hexbreaking Adherent'] = "BLM, MAB+"
+}
+chatmodes = S{'say', 'party', 'linkshell', 'linkshell2', 'shout', 'echo', 's', 'p', 'l', 'l2', 'sh'}
+false_values = S{'false', 'off', 'f', '0'}
+true_values = S{'true', 'on', 't', '1'}
 moblist = S{}
 mob = windower.ffxi.get_mob_by_target('st') or windower.ffxi.get_mob_by_target('t')
         
-windower.register_event('addon command', function (command,...)
+windower.register_event('addon command', function(command, ...)
     command = command and command:lower() or 'help'
     local args = T{...}
     if command == 'reload' then
@@ -63,18 +71,22 @@ windower.register_event('addon command', function (command,...)
             error(' ***** That is not a valid chat mode *****')
         end
     elseif command == 'announce' or command == 'a' then
-        announce(mob.name)
+        if mob and mob.name then
+            announce(mob.name)
+        else
+            error(' ***** No valid target selected *****')
+        end
     elseif command == 'autoannounce' or command == 'aa' then
         local value = args[1] and args[1]:lower() or nil
         if not value then
             settings.AutoAnnounce = not settings.AutoAnnounce
         elseif false_values:contains(value) or true_values:contains(value) then
-            settings.AutoAnnounce = not false_values:contains(args[1]:lower())
+            settings.AutoAnnounce = not false_values:contains(value)
         else
             error(' ***** "'..args[1]..'" is not a valid setting for AutoAnnounce *****')
             return
         end
-        log(' ***** AutoAnnounce changed to "',settings.AutoAnnounce,'" *****')
+        log(' ***** AutoAnnounce changed to "', settings.AutoAnnounce, '" *****')
         config.save(settings)
     elseif command == 'clear' or command == 'c' then
         moblist:clear()
@@ -92,23 +104,23 @@ windower.register_event('addon command', function (command,...)
 end)
 
 function announce(name)
-    if adherents_map[name] then
+    if name and adherents_map[name] then
         windower.send_command('input /'..settings.AnnounceMode..' '..name..' buff is ==> '..adherents_map[name])
     else
         log(' ***** Target is not an Adherent *****')
     end
 end
 
-windower.register_event('target change',function(index)
+windower.register_event('target change', function(index)
     mob = windower.ffxi.get_mob_by_index(index)
-    if settings.AutoAnnounce and index ~= 0 then
-        if adherents_map[mob.name] and not moblist:contains(mob.id) then
+    if settings.AutoAnnounce and index ~= 0 and mob then
+        if mob.name and adherents_map[mob.name] and not moblist:contains(mob.id) then
             moblist:add(mob.id)
             announce(mob.name)
         end
     end
 end)
 
-windower.register_event('zone change',function(...)
+windower.register_event('zone change', function(...)
     moblist:clear()
 end)

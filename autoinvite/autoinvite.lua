@@ -104,8 +104,8 @@ end)
 -- Attempts to send an invite
 function try_invite(player)
     if windower.ffxi.get_party().p5 then
-        notice(player.. 'cannot be invited - party is full')
-        if settings.tell_back == 'on' then
+        notice(player.. ' cannot be invited - party is full')
+        if settings.tellback == 'on' then
             windower.send_command('input /t '..player..' Party is currently full.')
         end
         return
@@ -113,8 +113,8 @@ function try_invite(player)
 
     local status = res.statuses[windower.ffxi.get_player().status].english
     if statusblock:contains(status) then
-        notice(player.. 'cannot be invited - you cannot send an invite at this time (' .. status .. ').')
-        if settings.tell_back == 'on' then
+        notice(player.. ' cannot be invited - you cannot send an invite at this time (' .. status .. ').')
+        if settings.tellback == 'on' then
             windower.send_command('input /t '..player..' An invite cannot be sent at this time (' .. status .. ').')
         end
         return
@@ -129,9 +129,9 @@ function add_item(mode, ...)
     local doubles = names * settings[mode]
     if not doubles:empty() then
         if aliases[mode] == 'keywords' then
-            notice('Keyword':plural(doubles)..' '..doubles:format()..' already on keyword list.')
+            notice(('Keyword'):plural(doubles)..' '..doubles:format()..' already on keyword list.')
         else
-            notice('User':plural(doubles)..' '..doubles:format()..' already on '..aliases[mode]..'.')
+            notice(('User'):plural(doubles)..' '..doubles:format()..' already on '..aliases[mode]..'.')
         end
     end
     local new = names - settings[mode]
@@ -147,9 +147,9 @@ function remove_item(mode, ...)
     local dummy = names - settings[mode]
     if not dummy:empty() then
         if aliases[mode] == 'keywords' then
-            notice('Keyword':plural(dummy)..' '..dummy:format()..' not found on keyword list.')
+            notice(('Keyword'):plural(dummy)..' '..dummy:format()..' not found on keyword list.')
         else
-            notice('User':plural(dummy)..' '..dummy:format()..' not found on '..aliases[mode]..'.')
+            notice(('User'):plural(dummy)..' '..dummy:format()..' not found on '..aliases[mode]..'.')
         end
     end
     local item_to_remove = names * settings[mode]
@@ -177,7 +177,7 @@ windower.register_event('addon command', function(command, ...)
     
     -- Turns tellback on or off
     elseif command == 'tellback' then
-        status = args[1] or 'status'
+        local status = args[1] or 'status'
         status = string.lower(status)
         if on:contains(status) then
             settings.tellback = 'on'
@@ -193,7 +193,7 @@ windower.register_event('addon command', function(command, ...)
         end
         
     elseif aliases:keyset():contains(command) then
-        mode = aliases[command]
+        local mode = aliases[command]
         names = args:slice(2):map(string.ucfirst..string.lower)
         if args:empty() then
             log(mode:ucfirst()..':', settings[mode]:format('csv'))
@@ -217,8 +217,7 @@ windower.register_event('addon command', function(command, ...)
     
     -- Ignores (and prints a warning) if unknown command is passed.
     else
-        warning('Unkown command \''..command..'\', ignored.')
-
+        warning('Unknown command \''..command..'\', ignored.')
     end
 
     config.save(settings)

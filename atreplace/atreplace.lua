@@ -1,38 +1,40 @@
 _addon.name = 'atreplace'
 _addon.author = 'Lili'
-_addon.version = '1.3.0'
+_addon.version = '1.3.1'
 _addon.commands = { _addon.name, 'at' }
 
 local res = require('resources')
+local windower = require('windower')
 require('pack')
 require('logger')
+local sets = require('sets') -- Required for S{} constructor
 
 local validterms = { auto_translates = S{}, items = S{}, key_items = S{} }
 local cache = {}
 local lang = windower.ffxi.get_info().language:lower()
 
-at_term = function(str)
+local at_term = function(str)
     local term = str:lower()
 
     if not cache[term] then
-        local at    
-        local id = validterms.auto_translates[term] or validterms.items[term] or validterms.key_items[term] 
+        local at
+        local id = validterms.auto_translates[term] or validterms.items[term] or validterms.key_items[term]
         
         if id then
             -- arcon is the best
             local is_item = validterms.items[term] and true
-            local high = (id / 0x100):floor() ~= 0
+            local high = math.floor(id / 0x100) ~= 0 -- Fixed floor method for Lua 5.1
             local low = (id % 0x100) ~= 0
             local any_zero = not (high and low)
-            local mask = validterms.auto_translates[term] and 2:char() or 'qqqqq':pack(
-                low,
-                high,
-                not is_item == any_zero,
-                is_item and any_zero,
-                not is_item
+            local mask = validterms.auto_translates[term] and string.char(2) or string.pack('qqqqq',
+                low and 1 or 0,
+                high and 1 or 0,
+                (not is_item == any_zero) and 1 or 0,
+                (is_item and any_zero) and 1 or 0,
+                (not is_item) and 1 or 0
             )
 
-            at = 'CS1C>HC':pack(0xFD, mask, 2, id, 0xFD):gsub("%z", 0xFF:char())
+            at = string.pack('CS1C>HC', 0xFD, mask, 2, id, 0xFD):gsub("\0", string.char(0xFF)) -- Explicit null character
         end
        
         cache[term] = at or str
@@ -41,7 +43,7 @@ at_term = function(str)
     return cache[term]
 end
 
-windower.register_event('load',function()
+windower.register_event('load', function()
     local keys = { 'english', 'english_log', 'japanese', 'japanese_log' }
     for category,_ in pairs(validterms) do
         for id, t in pairs(res[category]) do
@@ -56,7 +58,7 @@ windower.register_event('load',function()
     end
 end)
 
-windower.register_event('outgoing text', function(org, mod, blk)
+windower.register_event('outgoing text', function(org, mod)
     if org == mod then
         return mod:gsub("_%((..-)%)", at_term)
     end
@@ -77,22 +79,33 @@ windower.register_event('addon command', function(...)
     elseif mode == 'search' or mode == 'find' then
         table.remove(args,1)
         local arg = args:concat(' ')
-        local query = arg:gsub('%a', function(char) return string.format("([%s%s])", char:lower(), char:upper()) end)
-        log("Search results for '%s'":format(arg:color(258)))
+        -- Simplified pattern matching for better Lua 5.1 compatibility
+        local pattern = arg:lower()
+        log(string.format("Search results for '%s'", arg))
         for cat, t in pairs(validterms) do
             local r = ''
-            for name,id in pairs(t) do
-                if name:find(arg) then
-                    r = '%s %s,':format(r, res[cat][id][lang])
+            local count = 0
+            for name, id in pairs(t) do
+                if name:lower():find(pattern, 1, true) then
+                    r = string.format('%s %s,', r, res[cat][id][lang])
+                    count = count + 1
+                    if count >= 50 then
+                        r = r .. ' (too many results, showing first 50)'
+                        break
+                    end
                 end
             end
-            if #r > 512 then
-                r = '(Too many results; please provide a longer string.)'
-            elseif #r > 1 then
+            if count > 0 then
                 log('[' .. cat:upper() .. ']', r:sub(1,-2))
             end
         end
         
         return
+        
+    else
+        log('ATReplace Commands:')
+        log('//at search <term> - Search for auto-translate terms')
+        log('//at reload - Reload the addon')
+        log('//at unload - Unload the addon')
     end
 end)

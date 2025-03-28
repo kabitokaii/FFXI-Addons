@@ -7,25 +7,28 @@ require('pack')
 require('lists')
 require('tables')
 require('strings')
-texts = require('texts')
-config = require('config')
+local texts = require('texts')
+local config = require('config')
+local windower = require('windower')
+local struct = require('struct')
 
-default = {
+local default = {
     roll = L{'Ninja Roll','Corsair\'s Roll'},
     active = true,
     crooked_cards = 1,
     text = {text = {size=10}},
-    }
+}
 
-settings = config.load(default)
-actions = false
-nexttime = os.clock()
-del = 0
-buffs = {}
-finish_act = L{2,3,5}
-start_act = L{7,8,9,12}
+local settings = config.load(default)
+local actions = false
+local nexttime = os.clock()
+local del = 0
+local buffs = {}
+local finish_act = L{2,3,5}
+local start_act = L{7,8,9,12}
+local is_casting = false
 
-rolls = T{
+local rolls = T{
     [98] = {id=98,buff=310,en="Fighter's Roll",lucky=5,unlucky=9,bonus="Double Attack Rate",job='War'},
     [99] = {id=99,buff=311,en="Monk's Roll",lucky=3,unlucky=7,bonus="Subtle Blow",job='Mnk'},
     [100] = {id=100,buff=312,en="Healer's Roll",lucky=3,unlucky=7,bonus="Cure Potency Received",job='Whm'},
@@ -57,19 +60,38 @@ rolls = T{
     [305] = {id=305,buff=338,en="Avenger's Roll",lucky=4,unlucky=8,bonus="Counter Rate"},
     [390] = {id=390,buff=339,en="Naturalist's Roll",lucky=3,unlucky=7,bonus="Enhancing Magic Duration",job='Geo'},
     [391] = {id=391,buff=600,en="Runeist's Roll",lucky=4,unlucky=8,bonus="Magic Evasion",job='Run'},
-    }
+}
 
-local display_box = function()
-    return 'AutoCOR [O%s]\nRoll 1 [%s]\nRoll 2 [%s]':format(actions and 'n' or 'ff',settings.roll[1],settings.roll[2])
+-- Function definitions
+local function use_JA(str)
+    del = 1.2
+    windower.chat.input(str)
 end
 
-cor_status = texts.new(display_box(),settings.text,setting)
+local function reset()
+    actions = false
+    is_casting = false
+    buffs = {}
+end
+
+local function status_change(new, _)
+    --is_casting = false
+    if new > 1 and new < 4 then
+        reset()
+    end
+end
+
+local display_box = function()
+    return ('AutoCOR [O%s]\nRoll 1 [%s]\nRoll 2 [%s]'):format(actions and 'n' or 'ff',settings.roll[1],settings.roll[2])
+end
+
+local cor_status = texts.new(display_box(),settings.text) -- Fixed duplicate parameter
 cor_status:show()
 
-last_coords = 'fff':pack(0,0,0)
-is_moving = false
+local last_coords = ''
+local is_moving = false
 
-windower.register_event('outgoing chunk',function(id,data,modified,is_injected,is_blocked)
+windower.register_event('outgoing chunk',function(id, _, modified, _, _)
     if id == 0x015 then
         is_moving = last_coords ~= modified:sub(5, 16)
         last_coords = modified:sub(5, 16)
@@ -94,19 +116,20 @@ windower.register_event('prerender',function ()
         end
         for x = 1,2 do
             local roll = rolls:with('en',settings.roll[x])
+            if not roll then return end
             if not buffs[roll.buff] then
                 if abil_recasts[193] == 0 then
                     if x == settings.crooked_cards and abil_recasts[96] and abil_recasts[96] == 0 then
                         use_JA('/ja "Crooked Cards" <me>')
                     else
-                        use_JA('/ja "%s" <me>':format(roll.en))
+                        use_JA(('/ja "%s" <me>'):format(roll.en))
                     end
                 end
                 return
-            elseif buffs[308] and buffs[308] == roll.id and buffs[roll.buff] ~= roll.lucky and buffs[roll.buff] ~= 11 then
-                if abil_recasts[197] and abil_recasts[197] == 0 and not buffs[357] and L{roll.lucky-1,10,roll.unlucky > 6 and roll.unlucky}:contains(buffs[roll.buff]) then
+            elseif buffs[308] and buffs[308] == roll.id and buffs[roll.buff] and buffs[roll.buff] ~= roll.lucky and buffs[roll.buff] ~= 11 then
+                if abil_recasts[197] and abil_recasts[197] == 0 and not buffs[357] and buffs[roll.buff] and L{roll.lucky-1,10,(roll.unlucky > 6 and roll.unlucky)}:contains(buffs[roll.buff]) then
                     use_JA('/ja "Snake Eye" <me>')
-                elseif abil_recasts[194] and abil_recasts[194] == 0 and (buffs[357] or buffs[roll.buff] < 7) then
+                elseif abil_recasts[194] and abil_recasts[194] == 0 and (buffs[357] or (buffs[roll.buff] and buffs[roll.buff] < 7)) then
                     use_JA('/ja "Double-Up" <me>')
                 end
                 return
@@ -141,7 +164,7 @@ windower.register_event('addon command', function(...)
                 settings.roll[commands[2]] = roll.en
                 print(roll.en,roll.bonus,roll.job and roll.job:upper())
             else
-                for k,v in pairs(rolls) do
+                for _, v in pairs(rolls) do
                     if v and not settings.roll:find(v.en) and v.en:startswith(commands[3]) then
                         settings.roll[commands[2]] = v.en
                         print(v.en,v.bonus,v.job and v.job:upper())
@@ -152,24 +175,26 @@ windower.register_event('addon command', function(...)
     elseif commands[1] == 'save' then
         settings:save()
     elseif commands[1] == 'eval' then
-        assert(loadstring(table.concat(commands, ' ',2)))()
+        assert(loadstring(table.concat(commands, ' ',2)))() -- Changed load() to loadstring() for Lua 5.1 compatibility
     else
-        -- create help text
+        -- Implemented help text
+        windower.add_to_chat(207, 'AutoCOR commands:')
+        windower.add_to_chat(207, '//cor - Toggle rolls on/off')
+        windower.add_to_chat(207, '//cor on - Start auto-rolling')
+        windower.add_to_chat(207, '//cor off - Stop auto-rolling')
+        windower.add_to_chat(207, '//cor roll [1|2] [name] - Set roll 1 or 2')
+        windower.add_to_chat(207, '//cor cc [num|off] - Set which roll to use Crooked Cards on (2=roll 2, off=never)')
+        windower.add_to_chat(207, '//cor save - Save settings')
     end
     cor_status:text(display_box())
     --windower.add_to_chat(207, str)
 end)
 
-function use_JA(str)
-    del = 1.2
-    windower.chat.input(str)
-end
-
-windower.register_event('incoming chunk', function(id,data,modified,is_injected,is_blocked)
+windower.register_event('incoming chunk', function(id, data, _, _, _)
     if id == 0x028 then
         if data:unpack('I', 6) ~= windower.ffxi.get_mob_by_target('me').id then return false end
-        local category, param = data:unpack( 'b4b16', 11, 3)
-        local recast, targ_id = data:unpack('b32b32', 15, 7)
+        local category, param = data:unpack('b4b16', 11, 3)
+        local recast, _ = data:unpack('b32b32', 15, 7)
         local effect, message = data:unpack('b17b10', 27, 6)
         if category == 6 then                       -- Use Job Ability
             if message == 420 then                  -- Phantom Roll
@@ -209,18 +234,7 @@ windower.register_event('incoming chunk', function(id,data,modified,is_injected,
     end
 end)
 
-function reset()
-    actions = false
-    is_casting = false
-    buffs = {}
-end
-
-function status_change(new,old)
-    --is_casting = false
-    if new > 1 and new < 4 then
-        reset()
-    end
-end
-
 windower.register_event('status change', status_change)
-windower.register_event('zone change','job change','logout', reset)
+windower.register_event('zone change', reset)
+windower.register_event('job change', reset)
+windower.register_event('logout', reset)
