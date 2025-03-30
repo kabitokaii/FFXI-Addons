@@ -7,7 +7,7 @@ require('luau')
 require('pack')
 bit = require('bit')
 
-buy_list = {23,14} -- key items will be purchased in this order until you are unable to buy more
+buy_list = {23,14,2} -- key items will be purchased in this order until you are unable to buy more
 
 htmb_map = {
      [0] = {name = 'Shadow Lord phantom gem',      cost = 10},

@@ -25,13 +25,6 @@
                 <4>Koru-Moru</4>
                 <5>AAEV</5>
             </4>
-            <DI>
-                <1>Ulmia</1>
-                <2>Selh&apos;teus</2>
-                <3>Lilisette II</3>
-                <4>Apururu (UC)</4>
-                <5>Arciela II</5>
-            </DI>
             <apex>
                 <1>AAEV</1>
                 <2>Sylvie (UC)</2>
@@ -80,6 +73,13 @@
                 <4>Adelheid</4>
                 <5>Joachim</5>
             </default>
+            <di>
+                <1>Ulmia</1>
+                <2>Selh&apos;teus</2>
+                <3>Lilisette II</3>
+                <4>Apururu (UC)</4>
+                <5>Arciela II</5>
+            </di>
             <farm>
                 <1>Yoran-Oran (UC)</1>
                 <2>Joachim</2>
@@ -230,6 +230,18 @@
                 <4>Robel-Akbel</4>
                 <5>Qultada</5>
             </vw1>
+            <xp>
+                <1>Monberaux</1>
+                <2>Kupofried</2>
+                <3>Qultada</3>
+                <4>Valaineral</4>
+            </xp>
+            <xp2>
+                <1>Monberaux</1>
+                <2>Kupofried</2>
+                <3>Valaineral</3>
+                <4>Semih Lafihna</4>
+            </xp2>
             <yel>
                 <1>Cherukiki</1>
                 <2>Kukki-Chebukki</2>

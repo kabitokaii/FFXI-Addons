@@ -197,12 +197,12 @@ function init_gear_sets()
 	
     sets.precast.WS['Leaden Salute'] = {ammo=gear.MAbullet,
         head="Pixie Hairpin +1",neck="Comm. Charm +2",ear1="Moonshade Earring",ear2="Friomisi Earring",
-        body="Lanun Frac +2",hands="Nyame Gauntlets",ring1="Epaminondas's Ring",ring2="Dingir Ring",
+        body="Lanun Frac +3",hands="Nyame Gauntlets",ring1="Epaminondas's Ring",ring2="Dingir Ring",
         back=gear.magic_wsd_jse_back,waist="Eschan Stone",legs="Nyame Flanchard",feet="Lanun Bottes +3"}
 		
     sets.precast.WS['Leaden Salute'].Acc = {ammo=gear.MAbullet,
         head="Pixie Hairpin +1",neck="Comm. Charm +2",ear1="Moonshade Earring",ear2="Friomisi Earring",
-        body="Lanun Frac +2",hands="Nyame Gauntlets",ring1="Epaminondas's Ring",ring2="Dingir Ring",
+        body="Lanun Frac +3",hands="Nyame Gauntlets",ring1="Epaminondas's Ring",ring2="Dingir Ring",
         back=gear.magic_wsd_jse_back,waist="Eschan Stone",legs="Nyame Flanchard",feet="Lanun Bottes +3"}
 
     sets.precast.WS['Aeolian Edge'] = {ammo="Animikii Bullet",
@@ -316,12 +316,12 @@ function init_gear_sets()
 	sets.weapons.Default = {main="Naegling",sub="Nusku Shield",range="Doomsday"}
 	sets.weapons.Ranged = {main="Rostam",sub="Nusku Shield",range="Doomsday"}
 	sets.weapons.Evisceration = {main="Tauret",sub="Nusku Shield",range="Anarchy +2"}
-	sets.weapons.DualWeapons = {main="Naegling",sub="Gleti's Knife",range="Doomsday"}
-	sets.weapons.DualSavageWeapons = {main="Naegling",sub="Gleti's Knife",range="Anarchy +2"}
+	sets.weapons.DualWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Doomsday"}
+	sets.weapons.DualSavageWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Anarchy +2"}
 	sets.weapons.DualEvisceration = {main="Tauret",sub="Blurred Knife +1",range="Anarchy +2"}
 	sets.weapons.Savage = {main="Naegling",sub="Nusku Shield",range="Anarchy +2"}
 	sets.weapons.DualLeadenRanged = {main="Rostam",sub="Tauret",range="Doomsday"}
-	sets.weapons.DualLeadenMelee = {main="Naegling",sub="Gleti's Knife",range="Doomsday"}
+	sets.weapons.DualLeadenMelee = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Doomsday"}
 	sets.weapons.DualAeolian = {main="Rostam",sub="Tauret",range="Anarchy +2"}
 	sets.weapons.DualLeadenMeleeAcc = {main="Naegling",sub="Blurred Knife +1",range="Doomsday"}
 	sets.weapons.DualRanged = {main="Rostam",sub="Kustawi +1",range="Doomsday"}

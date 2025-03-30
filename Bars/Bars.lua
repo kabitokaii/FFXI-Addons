@@ -330,6 +330,24 @@ local screen_test_target = {
 }
 local sp = settings.colors.target.sp_active_glow
 
+--Format RGB values with leading zeros (helps prevent an issue with the shadow text not lining up correctly)
+local function formatRGB(value)
+	return string.format("%03d", value)
+end
+
+--Standardize string message formatting
+local function format_message(prefix, message, value, color_code)
+	local prefix_colored = string.format('[Bars] '):color(220)
+	local message_colored = string.format('%s'):color(color_code or 36)
+	local value_colored = value and string.format(' %s'):color(200) or ''
+	
+	if value then
+		return prefix_colored .. string.format(message, value):color(color_code or 36)
+	else
+		return prefix_colored .. message:color(color_code or 36)
+	end
+end
+
 --BACKGROUNDS
 
 --Create the Focus Target BACKGROUND text object
@@ -778,6 +796,30 @@ local function setSize()
 
 end
 
+--Assign positions based on which bars are displayed
+local function assign_positions(base_stat, bars)
+	local positions = {}
+	local offset_y = 0
+
+	if bars.hp then
+		positions.hp = {x = base_stat.x, y = base_stat.y + offset_y}
+		offset_y = offset_y + bars_vertical_spacing.between_player_stats
+	end
+
+	if bars.mp then
+		positions.mp = {x = base_stat.x, y = base_stat.y + offset_y}
+		offset_y = offset_y + bars_vertical_spacing.between_player_stats
+	end
+
+	if bars.tp then
+		positions.tp = {x = base_stat.x, y = base_stat.y + offset_y}
+		offset_y = offset_y + bars_vertical_spacing.between_player_stats
+	end
+
+	positions.pet = {x = base_stat.x, y = base_stat.y + offset_y}
+	return positions
+end
+
 --Set the bars in their appropriate positions
 local function setPosition()
 
@@ -797,30 +839,6 @@ local function setPosition()
 	local base_stat = player_stats_1
 	if show_self_action then
 		base_stat = player_stats_2
-	end
-
-	--Assign positions
-	local function assign_positions(base_stat, bars)
-		local positions = {}
-		local offset_y = 0
-
-		if bars.hp then
-			positions.hp = {x = base_stat.x, y = base_stat.y + offset_y}
-			offset_y = offset_y + bars_vertical_spacing.between_player_stats
-		end
-
-		if bars.mp then
-			positions.mp = {x = base_stat.x, y = base_stat.y + offset_y}
-			offset_y = offset_y + bars_vertical_spacing.between_player_stats
-		end
-
-		if bars.tp then
-			positions.tp = {x = base_stat.x, y = base_stat.y + offset_y}
-			offset_y = offset_y + bars_vertical_spacing.between_player_stats
-		end
-
-		positions.pet = {x = base_stat.x, y = base_stat.y + offset_y}
-		return positions
 	end
 
 	--Determine positions based on which bars are displayed
@@ -1299,13 +1317,6 @@ local function truncateName(name)
 	return name
 end
 
---Format RGB values with leading zeros (helps prevent an issue with the shadow text not lining up correctly)
-local function formatRGB(value)
-
-	return string.format("%03d", value)
-
-end
-
 --Convert auto focus targets to save them properly
 local function convertToSave(target)
 
@@ -1344,19 +1355,18 @@ local function addToAutoFocusTargetList(target)
 		if target then
 			target = target.name
 		else
-			add_to_chat(8,('[Bars] '):color(220)..('Please either target a player/npc, or specify a target to be added (name or id).'):color(8))
+			add_to_chat(8, format_message('', 'Please either target a player/npc, or specify a target to be added (name or id).', nil, 8))
 			return
 		end
 	elseif string.find(target, "[<>]") then
-		add_to_chat(8,('[Bars] '):color(220)..('Target cannot contain "<" or ">" characters.'):color(8))
+		add_to_chat(8, format_message('', 'Target cannot contain "<" or ">" characters.', nil, 8))
 		return
 	end
 
 	auto_focus_target_list[convertToSave(target)] = true
 	settings:save('all')
 	
-	add_to_chat(8,('[Bars] '):color(220)..('Added to Auto Focus Target list: '):color(36)..(capitalize(target)):color(1))
-
+	add_to_chat(8, format_message('', 'Added to Auto Focus Target list: ', capitalize(target), 1))
 end
 
 --Remove a target from the auto_focus_target_list
@@ -1373,7 +1383,7 @@ local function removeFromAutoFocusTargetList(target)
 		if target then
 			target = target.name
 		else
-			add_to_chat(8,('[Bars] '):color(220)..('Please either target a player/npc, or specify a target to be removed (name or id).'):color(8))
+			add_to_chat(8, format_message('', 'Please either target a player/npc, or specify a target to be removed (name or id).', nil, 8))
 			return
 		end
 	end
@@ -1382,16 +1392,13 @@ local function removeFromAutoFocusTargetList(target)
 
 	if auto_focus_target_list[savedTarget] then
 		auto_focus_target_list[savedTarget] = nil
-		add_to_chat(8,('[Bars] '):color(220)..('Removed from Auto Focus Target list: '):color(36)..(capitalize(target)):color(1))
+		add_to_chat(8, format_message('', 'Removed from Auto Focus Target list: ', capitalize(target), 1))
 		settings:save('all')
-
 	else
-		add_to_chat(8,('[Bars] '):color(220)..(capitalize(target)):color(1)..(' was not found.'):color(8))
-		add_to_chat(8,('[Bars] '):color(220)..('Type '):color(8)..('//bars list'):color(1)..(' to see stored targets.'):color(8))
-
+		add_to_chat(8, format_message('', '%s was not found.', capitalize(target), 1))
+		add_to_chat(8, format_message('', 'Type %s to see stored targets.', '//bars list', 1))
 	end
 end
-
 --What jobs are the target mob?
 local function dynaJob(mob_name)
 
@@ -2077,12 +2084,11 @@ local function updatePetBar()
 	bars_meter_pet:bg_color(cm_r,cm_g,cm_b)
 
 end
-
 --List the contents of the Auto Focus Target list
 local function listAutoFocusTargets()
 	local sortedTargets = {}
 
-	add_to_chat(8,('[Bars] '):color(220)..('Auto Focus Targets: '):color(8))
+	add_to_chat(8, format_message('', 'Auto Focus Targets:', nil, 8))
 
 	--Copy targets and sort them alphabetically
 	for target in pairs(auto_focus_target_list) do
@@ -2092,14 +2098,13 @@ local function listAutoFocusTargets()
 
 	--Check if sortedTargets is empty
 	if next(sortedTargets) == nil then
-		add_to_chat(8,' - '..('[Empty]'):color(1))
+		add_to_chat(8, ' - ' .. ('[Empty]'):color(1))
 	end
 
 	--Add sorted targets to chat
 	for _, target in ipairs(sortedTargets) do
-		add_to_chat(8,' - '..(convertToDisplay(target)):color(1))
+		add_to_chat(8, ' - ' .. convertToDisplay(target):color(1))
 	end
-
 end
 
 --Check for matching focus targets
@@ -2165,7 +2170,7 @@ local function checkForFocusTargetOverride()
 		focus_target_override = screen_test and screen_test_focus_target or get_mob_by_id(focus_target_override.id)
 	--Remove the Focus Target Override if they are no longer nearby
 	else
-		add_to_chat(8,('[Bars] '):color(220)..('Focus Target Override Removed: '):color(36)..(focus_target_override.name):color(1))
+		add_to_chat(8, format_message('', 'Focus Target Override Removed: ', focus_target_override.name, 1))
 		focus_target_override = nil
 	end
 
@@ -2789,7 +2794,7 @@ windower.register_event('action', function (act)
 				target_action_result = ' ('..count..buff_name..')'
 				target_action_result_shdw = ' ('..count..buff_name..')'
 			--Evaded/No Effect/Resisted/Immunobreak/Anticipated/Blinked/Dodged/Missed
-			elseif msg == 282 or msg == 75 or msg == 156 or msg == 189 or msg == 248 or msg == 283 or msg == 323 or msg == 355 or msg == 408 or msg == 422 or msg == 423 or msg == 425 or msg == 659 or msg == 114 or msg == 85 or msg == 284 or msg == 653 or msg == 654 or msg == 655 or msg == 656 or msg == 30 or msg == 31 or msg == 32 or msg == 15 or msg == 63 or msg == 158 or msg == 188 or msg == 245 or msg == 324 or msg == 658 then
+			elseif msg == 282 or msg == 75 or msg == 156 or msg == 189 or msg == 248 or msg == 283 or msg == 323 or msg == 355 or msg == 408 or msg == 422 or msg == 423 or msg == 425 or msg == 659 or msg == 114 or msg == 85 or msg == 284 or msg == 655 or msg == 656 or msg == 653 or msg == 654 or msg == 30 or msg == 31 or msg == 32 or msg == 15 or msg == 63 or msg == 158 or msg == 188 or msg == 245 or msg == 324 or msg == 658 then
 				local info = calculateInfo(act)
 				local landed = info.landed
 				local last_buff_id = info.last_buff_id
@@ -3919,7 +3924,7 @@ end)
 
 --Unrecognized command
 local function displayUnregnizedCommand()
-	add_to_chat(8,('[Bars] '):color(220)..('Unrecognized command. Type'):color(8)..(' //bars help'):color(1)..(' for a list of commands.'):color(8))
+	add_to_chat(8, format_message('', 'Unrecognized command. Type %s for a list of commands.', '//bars help', 1))
 end
 
 windower.register_event('addon command',function(addcmd, ...)
@@ -3930,8 +3935,8 @@ windower.register_event('addon command',function(addcmd, ...)
 
 		--If there are not enough parameters then output the current position and remind how to update
 		if #pos < 2 then
-			add_to_chat(8,('[Bars] '):color(220)..('Position:'):color(36)..(' '..settings.pos.x..' '..settings.pos.y):color(200))
-			add_to_chat(8,('[Bars] '):color(220)..('Update by adding X and Y coordinates (ex. '):color(8)..('//bars pos 100 200'):color(1)..(')'):color(8))
+			add_to_chat(8, format_message('', 'Position: %s', string.format('%d %d', settings.pos.x, settings.pos.y), 200))
+			add_to_chat(8, format_message('', 'Update by adding X and Y coordinates (ex. %s)', '//bars pos 100 200', 1))
 
 		--X and Y coordinates are provided
 		else
@@ -3947,9 +3952,8 @@ windower.register_event('addon command',function(addcmd, ...)
 			--Save the new setting, update the position, then alert the user
 			else
 				settings:save('all')
-				add_to_chat(8,('[Bars] '):color(220)..('Position:'):color(36)..(' '..settings.pos.x..' '..settings.pos.y):color(200))
+				add_to_chat(8, format_message('', 'Position: %s', string.format('%d %d', settings.pos.x, settings.pos.y), 200))
 				setPosition()
-
 			end
 		end
 		screenTest()
@@ -3961,9 +3965,8 @@ windower.register_event('addon command',function(addcmd, ...)
 
 		--If there are no parameters then output the current bar width and remind how to update
 		if #width < 1 then
-			add_to_chat(8,('[Bars] '):color(220)..('Width:'):color(36)..(' '..settings.options.bar_width):color(200))
-			add_to_chat(8,('[Bars] '):color(220)..('Update by adding a number (ex.'):color(8)..(' //bars width 73'):color(1)..(')'):color(8))
-
+			add_to_chat(8, format_message('', 'Width: %s', settings.options.bar_width, 200))
+			add_to_chat(8, format_message('', 'Update by adding a number (ex. %s)', '//bars width 73', 1))
 		--Size number is provided
 		else
 			--Take the provided string parameter and turn it into a number
@@ -3973,11 +3976,10 @@ windower.register_event('addon command',function(addcmd, ...)
 			if new_width == nil then
 				displayUnregnizedCommand()
 				return
-
 			else
 				settings.options.bar_width = new_width
 				settings:save('all')
-				add_to_chat(8,('[Bars] '):color(220)..('Width:'):color(36)..(' '..settings.options.bar_width):color(200))
+				add_to_chat(8, format_message('', 'Width: %s', settings.options.bar_width, 200))
 				hideBars()
 				setWidth()
 				setPosition()
@@ -3985,127 +3987,52 @@ windower.register_event('addon command',function(addcmd, ...)
 				updateMPBar()
 				updateTPBar()
 				showBars()
-
 			end
 		end
 		screenTest()
-
+	
 	--Toggle the HP bar display setting for the current job
 	elseif addcmd == 'hp' then
-
 		show_bars[job].hp = not show_bars[job].hp
 		settings:save('all')
 		hideBars()
 		setPosition()
 		showBars()
-		add_to_chat(8,('[Bars] '):color(220)..('HP bar display for '..uppercase(job)..':'):color(36)..(' %s':format(show_bars[job].hp and 'ON' or 'OFF')):color(200))
-
+		add_to_chat(8, format_message('', 'HP bar display for %s: %s', uppercase(job), show_bars[job].hp and 'ON' or 'OFF'))
+		
 	--Toggle the MP bar display setting for the current job
 	elseif addcmd == 'mp' then
-
 		show_bars[job].mp = not show_bars[job].mp
 		settings:save('all')
 		hideBars()
 		setPosition()
 		showBars()
-		add_to_chat(8,('[Bars] '):color(220)..('MP bar display for '..uppercase(job)..':'):color(36)..(' %s':format(show_bars[job].mp and 'ON' or 'OFF')):color(200))
+		add_to_chat(8, format_message('', 'MP bar display for %s: %s', uppercase(job), show_bars[job].mp and 'ON' or 'OFF'))
 
 	--Toggle the TP bar display setting for the current job
 	elseif addcmd == 'tp' then
-
 		show_bars[job].tp = not show_bars[job].tp
 		settings:save('all')
 		hideBars()
 		setPosition()
 		showBars()
-		add_to_chat(8,('[Bars] '):color(220)..('TP bar display for '..uppercase(job)..':'):color(36)..(' %s':format(show_bars[job].tp and 'ON' or 'OFF')):color(200))
+		add_to_chat(8, format_message('', 'TP bar display for %s: %s', uppercase(job), show_bars[job].tp and 'ON' or 'OFF'))
 
 	--Toggle the Pet bar display setting for the current job
 	elseif addcmd == 'pet' then
-
 		show_bars[job].pet = not show_bars[job].pet
 		settings:save('all')
 		hideBars()
 		setPosition()
 		showBars()
-		add_to_chat(8,('[Bars] '):color(220)..('Pet bar display for '..uppercase(job)..':'):color(36)..(' %s':format(show_bars[job].pet and 'ON' or 'OFF')):color(200))
-
-	--Update the vertical offset for the current job
-	elseif addcmd == 'offset' or addcmd == 'o' then
-		local offset = {...}
-		local new_offset = nil
-
-		--If there are no parameters then output the current offset and remind how to update
-		if #offset < 1 then
-			add_to_chat(8,('[Bars] '):color(220)..('Vertical Offset for '..uppercase(job)..':'):color(36)..(' '..show_bars[job].vertical_offset):color(200))
-			add_to_chat(8,('[Bars] '):color(220)..('Update by adding a number (ex.'):color(8)..(' //bars offset 29'):color(1)..(')'):color(8))
-
-		--Size number is provided
-		else
-			--Take the provided string parameter and turn it into a number
-			new_offset = tonumber(offset[1])
-
-			--Save the new setting, update the offset, then alert the user
-			if new_offset == nil then
-				displayUnregnizedCommand()
-				return
-
-			else
-				show_bars[job].vertical_offset = new_offset
-				settings:save('all')
-				add_to_chat(8,('[Bars] '):color(220)..('Vertical Offset for '..uppercase(job)..':'):color(36)..(' '..show_bars[job].vertical_offset):color(200))
-				hideBars()
-				setPosition()
-				showBars()
-
-			end
-		end
-		screenTest()
-
-	--Update the size
-	elseif addcmd == 'size' or addcmd == 's' then
-		local size = {...}
-		local new_size = nil
-
-		--If there are no parameters then output the current size and remind how to update
-		if #size < 1 then
-			add_to_chat(8,('[Bars] '):color(220)..('Size:'):color(36)..(' '..settings.text.size):color(200))
-			add_to_chat(8,('[Bars] '):color(220)..('Update by adding a number (ex.'):color(8)..(' //bars size 10'):color(1)..(')'):color(8))
-
-		--Size number is provided
-		else
-			--Take the provided string parameter and turn it into a number
-			new_size = tonumber(size[1])
-					
-			--Save the new setting, update the size, then alert the user
-			if new_size == nil then
-				displayUnregnizedCommand()
-				return
-
-			else
-				settings.text.size = new_size
-				settings:save('all')
-				add_to_chat(8,('[Bars] '):color(220)..('Size:'):color(36)..(' '..settings.text.size):color(200))
-				setSize()
-
-			end
-		end
-		screenTest()
-
-	--Toggle the target distance setting
-	elseif addcmd == 'distance' or addcmd == 'dist' or addcmd == 'd' then
-
-		settings.options.show_target_distance = not settings.options.show_target_distance
-		show_target_distance = settings.options.show_target_distance
-		settings:save('all')
-		add_to_chat(8,('[Bars] '):color(220)..('Distance:'):color(36)..(' %s':format(settings.options.show_target_distance and 'ON' or 'OFF')):color(200))
-
+		add_to_chat(8, format_message('', 'Pet bar display for %s: %s', uppercase(job), show_bars[job].pet and 'ON' or 'OFF'))
+		
 	--Toggle the markers setting
 	elseif addcmd == 'marker' or addcmd == 'markers' or addcmd == 'm' then
 
 		settings.options.show_bar_markers = not settings.options.show_bar_markers
 		settings:save('all')
-		add_to_chat(8,('[Bars] '):color(220)..('Markers:'):color(36)..(' %s':format(settings.options.show_bar_markers and 'ON' or 'OFF')):color(200))
+		add_to_chat(8, format_message('', 'Markers: %s', settings.options.show_bar_markers and 'ON' or 'OFF', 200))
 		hideBars()
 		setWidth()
 		showBars()
@@ -4118,7 +4045,7 @@ windower.register_event('addon command',function(addcmd, ...)
 		settings.options.show_target_index = false
 		show_target_index = false
 		settings:save('all')
-		add_to_chat(8,('[Bars] '):color(220)..('Hex:'):color(36)..(' %s':format(settings.options.show_target_hex and 'ON' or 'OFF')):color(200))
+		add_to_chat(8, format_message('', 'Hex: %s', settings.options.show_target_hex and 'ON' or 'OFF', 200))
 		updateTarget()
 
 	--Toggle the index setting
@@ -4129,17 +4056,8 @@ windower.register_event('addon command',function(addcmd, ...)
 		settings.options.show_target_hex = false
 		show_target_hex = false
 		settings:save('all')
-		add_to_chat(8,('[Bars] '):color(220)..('Index:'):color(36)..(' %s':format(settings.options.show_target_index and 'ON' or 'OFF')):color(200))
+		add_to_chat(8, format_message('', 'Index: %s', settings.options.show_target_index and 'ON' or 'OFF', 200))
 		updateTarget()
-
-	--Toggle the bold setting
-	elseif addcmd == 'bold' or addcmd == 'b' then
-
-		settings.flags.bold = not settings.flags.bold
-		settings:save('all')
-		add_to_chat(8,('[Bars] '):color(220)..('Bold:'):color(36)..(' %s':format(settings.flags.bold and 'ON' or 'OFF')):color(200))
-		setBold()
-		screenTest()
 
 	--Add a target to the Auto Focus Target list
 	elseif addcmd == 'add' or addcmd == 'a' then
@@ -4163,7 +4081,7 @@ windower.register_event('addon command',function(addcmd, ...)
 
 		--Remove the current Focus Target Override
 		if focus_target_override then
-			add_to_chat(8,('[Bars] '):color(220)..('Focus Target Override Removed: '):color(36)..(focus_target_override.name):color(1))
+			add_to_chat(8, format_message('', 'Focus Target Override Removed: %s', focus_target_override.name, 1))
 			focus_target_override = nil
 		--Create a new Focus Target Override
 		else
@@ -4171,10 +4089,10 @@ windower.register_event('addon command',function(addcmd, ...)
 			if target then
 				focus_target_override = target
 				local currFTMDist = settings.options.focus_target_max_distance
-				add_to_chat(8,('[Bars] '):color(220)..('Focus Target Override Added: '):color(36)..(focus_target_override.name):color(1))
-				add_to_chat(8,('[Bars] '):color(220)..('Override removed when out of range ('):color(8)..(''..currFTMDist):color(200)..(') or by typing '):color(8)..('//bars focus'):color(1)..(' again.'):color(8))
+				add_to_chat(8, format_message('', 'Focus Target Override Added: %s', focus_target_override.name, 1))
+				add_to_chat(8, format_message('', 'Override removed when out of range (%s) or by typing %s again.', currFTMDist, '//bars focus', 1))
 			else
-				add_to_chat(8,('[Bars] '):color(220)..('Please select a target with your cursor and try again.'):color(8))
+				add_to_chat(8, format_message('', 'Please select a target with your cursor and try again.', nil, 8))
 			end
 		end
 
