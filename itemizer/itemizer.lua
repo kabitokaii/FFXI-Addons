@@ -51,7 +51,7 @@ windower.register_event("load", "login", function()
     local _, _, saved   = settings.version:find("(%d+%.%d+%.)")
     local _, _, current = _addon.version:find("(%d+%.%d+%.)")
     if saved ~= current then
-        log("Itemizer v%s: New features added. (use //itemizer help to find out about them)":format(_addon.version))
+        log(("Itemizer v%s: New features added. (use //itemizer help to find out about them)"):format(_addon.version))
         settings.version = _addon.version
         settings:save() 
     end
@@ -121,7 +121,7 @@ windower.register_event("addon command", function(command, arg2, ...)
         if type(arg2) == 'number' then
             settings.delay = arg2
             settings:save()
-            log('Delay is now %s.':format(settings.delay))
+            log(('Delay is now %s.'):format(settings.delay))
         else
             error('The delay must be a number')
         end
@@ -138,7 +138,7 @@ windower.register_event("addon command", function(command, arg2, ...)
         if settings.UseUniversalTools[arg] ~= nil then
             settings.UseUniversalTools[arg] = not settings.UseUniversalTools[arg]
             settings:save()
-            log('UseUniversalTools for %s spells is now':format(arg), settings.UseUniversalTools[arg])
+            log(('UseUniversalTools for %s spells is now'):format(arg), settings.UseUniversalTools[arg])
         else
             error('Argument 2 must be a ninjutsu spell (sans :ichi or :ni) i.e. uut katon')
         end
@@ -173,7 +173,7 @@ windower.register_event('unhandled command', function(command, ...)
         local specified_bag = rawget(bag_ids, bag)
         if specified_bag then
             if not windower.ffxi.get_bag_info(specified_bag).enabled then
-                error('%s currently not enabled':format(res.bags[specified_bag].name))
+                error(('%s currently not enabled'):format(res.bags[specified_bag].name))
                 return
             end
 
@@ -195,7 +195,7 @@ windower.register_event('unhandled command', function(command, ...)
         
         local destination_bag_info = windower.ffxi.get_bag_info(destination_bag)
         if destination_bag_info.max - destination_bag_info.count == 0 then
-            error('Not enough space in %s to move items.':format(res.bags[destination_bag].name))
+            error(('Not enough space in %s to move items.'):format(res.bags[destination_bag].name))
             return
         end
 
@@ -203,18 +203,18 @@ windower.register_event('unhandled command', function(command, ...)
  
         local item_ids = (S(res.items:name(windower.wc_match-{item_name})) + S(res.items:name_log(windower.wc_match-{item_name}))):map(table.get-{'id'})
         if item_ids:length() == 0 then
-            error('Unknown item: %s':format(item_name))
+            error(('Unknown item: %s'):format(item_name))
             return
         end
 
         local matches, results = find_items(item_ids, source_bag, count)
         if results == 0 then
-            error('Item "%s" not found in %s.':format(item_name, source_bag and res.bags[source_bag].name or 'any accessible bags'))
+            error(('Item "%s" not found in %s.'):format(item_name, source_bag and res.bags[source_bag].name or 'any accessible bags'))
             return
         end
 
         if count and results < count then
-            warning('Only %u "%s" found in %s.':format(results, item_name, source_bag and res.bags[source_bag].name or 'all accessible bags'))
+            warning(('Only %u "%s" found in %s.'):format(results, item_name, source_bag and res.bags[source_bag].name or 'all accessible bags'))
         end
 
         for match in matches:it() do
@@ -329,16 +329,14 @@ reschedule = function(text, ids, items)
 
     for id in L(ids):it() do
         if collect_item(id, items) then
-            windower.send_command:prepare('input %s':format(text)):schedule(settings.Delay)
+            windower.send_command:prepare(('input %s'):format(text)):schedule(settings.Delay)
             return true
         end
     end
 end
 
-windower.register_event('outgoing text', function()
+windower.register_event('outgoing text', function(text)
     local item_names = T{}
-
-    return function(text)
         -- Ninjutsu
         if settings.AutoNinjaTools and (text:startswith('/ma ') or text:startswith('/nin ') or text:startswith('/magic ') or text:startswith('/ninjutsu ')) then
             local name
@@ -392,34 +390,32 @@ windower.register_event('outgoing text', function()
             end
 
         end
-    end
-end())
+    end)
 
---[[
-Copyright © 2013-2015, Ihina
-All rights reserved.
+-- Copyright © 2013-2015, Ihina
+-- All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+-- Redistribution and use in source and binary forms, with or without
+-- modification, are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright
-      notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright
-      notice, this list of conditions and the following disclaimer in the
-      documentation and/or other materials provided with the distribution.
-    * Neither the name of Silence nor the
-      names of its contributors may be used to endorse or promote products
-      derived from this software without specific prior written permission.
+--     * Redistributions of source code must retain the above copyright
+--       notice, this list of conditions and the following disclaimer.
+--     * Redistributions in binary form must reproduce the above copyright
+--       notice, this list of conditions and the following disclaimer in the
+--       documentation and/or other materials provided with the distribution.
+--     * Neither the name of Silence nor the
+--       names of its contributors may be used to endorse or promote products
+--       derived from this software without specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL IHINA BE LIABLE FOR ANY
-DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-]]
+-- THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+-- ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+-- WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+-- DISCLAIMED. IN NO EVENT SHALL IHINA BE LIABLE FOR ANY
+-- DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+-- (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+-- LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+-- ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+-- (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+-- SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-- ]]
 --Original plugin by Aureus

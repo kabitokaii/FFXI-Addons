@@ -64,7 +64,7 @@ function initiate_npc(name)
     local target = windower.ffxi.get_mob_by_name(name)
     if not self or self.status > 0 then return end
     if target and math.sqrt(target.distance) < 6 and target.valid_target and target.is_npc and bit.band(target.spawn_type, 0xDF) == 2 then
-        windower.packets.inject_outgoing(0x1A, 'I2H2d2':pack(0xE1A,target.id,target.index,0,0,0))
+        windower.packets.inject_outgoing(0x1A, ('I2H2d2'):pack(0xE1A,target.id,target.index,0,0,0))
     end
 end
 

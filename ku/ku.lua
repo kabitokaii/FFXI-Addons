@@ -246,7 +246,7 @@ windower.register_event('addon command', function()
 			log_invalid_params()
 		end
     end
-end())
+end)
 
 --[[
 	Event: Status has changed Engaged/Not Enaged

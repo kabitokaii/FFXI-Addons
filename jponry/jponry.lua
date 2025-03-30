@@ -54,7 +54,7 @@ windower.register_event('outgoing text', function(_, modified)
 	if (modified:contains('<thpp>')) then
 		local targ = windower.ffxi.get_mob_by_target()
 		if (targ ~= nil) then
-			local reptxt = tostring(targ.hpp)..'%':escape()
+			local reptxt = tostring(targ.hpp)..('%'):escape()
 			return modified:gsub('<thpp>', reptxt)
 		end
 	end
