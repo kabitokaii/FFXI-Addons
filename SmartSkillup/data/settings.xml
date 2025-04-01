@@ -9,6 +9,10 @@
         <user_ui_scalar>1</user_ui_scalar>
     </global>
     <kabitokaii>
+        <top_left>
+            <x>100</x>
+            <y>100</y>
+        </top_left>
         <user_ui_scalar>1.5</user_ui_scalar>
     </kabitokaii>
 </settings>
