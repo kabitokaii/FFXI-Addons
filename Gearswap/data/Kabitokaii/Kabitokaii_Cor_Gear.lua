@@ -165,8 +165,8 @@ function init_gear_sets()
     --     back=gear.str_wsd_jse_back,waist="Sailfi Belt +1",legs=gear.herculean_wsd_legs,feet="Lanun Bottes +3"}
     
     sets.precast.WS['Savage Blade'] = {ammo=gear.WSbullet,
-        head={ name="Nyame Helm", augments={'Path: B',}},neck="Comm. Charm +2",ear1="Moonshade Earring",ear2="Ishvara Earring",
-        body="Laksa. Frac +3",hands="Chasseur's Gants +3",ring1="Sroda Ring",ring2="Epaminondas's Ring",
+        head={ name="Nyame Helm", augments={'Path: B',}},neck="Rep. Plat. Medal",ear1="Moonshade Earring",ear2="Ishvara Earring",
+        body="Laksa. Frac +3",hands="Chasseur's Gants +3",ring1="Regal Ring",ring2="Epaminondas's Ring",
         back=gear.str_wsd_jse_back,waist="Sailfi Belt +1",legs={ name="Nyame Flanchard", augments={'Path: B',}},feet="Lanun Bottes +3"}
 
     -- sets.precast.WS['Savage Blade'].Acc = {ammo=gear.WSbullet,

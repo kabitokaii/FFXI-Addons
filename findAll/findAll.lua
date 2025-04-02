@@ -69,12 +69,12 @@ do
 
             local bag = bag_name == 'all' and 'all' or bag_ids[bag_name:lower()]
             if not bag and bag_name ~= 'all' then
-                warning('Unknown bag: %s':format(bag_name))
+                warning(('Unknown bag: %s'):format(bag_name))
             else
                 if not S{'$freespace', '$usedspace', '$maxspace'}:contains(search:lower()) then
                     local items = S(res.items:name(windower.wc_match-{search})) + S(res.items:name_log(windower.wc_match-{search}))
                     if items:empty() then
-                        warning('No items matching "%s" found.':format(search))
+                        warning(('No items matching "%s" found.'):format(search))
                     else
                         variable_cache:add({
                             name = variable,
@@ -199,6 +199,59 @@ function search(query, export)
     update_global_storage()
     update()
     if query:length() == 0 then
+        return
+    end
+
+    -- Special case for gil search
+    if query:length() == 1 and query[1]:lower() == 'gil' then
+        log('Searching for gil across all characters:')
+        local total_gil = 0
+        local char_count = 0
+        
+        -- Sort character names for consistent display order
+        local sorted_names = global_storages:keyset():sort()
+        
+        -- Place current character at the top if logged in
+        if windower.ffxi.get_info().logged_in then
+            local player_name = windower.ffxi.get_player().name
+            sorted_names = sorted_names:append(sorted_names:remove(sorted_names:find(player_name)))
+                                 :reverse()
+        end
+        
+        for _, character_name in ipairs(sorted_names) do
+            if global_storages[character_name].gil then
+                local char_gil = global_storages[character_name].gil
+                log(character_name..': '..char_gil..' gil')
+                total_gil = total_gil + char_gil
+                char_count = char_count + 1
+            end
+        end
+        
+        if char_count > 0 then
+            log('Total gil across all characters: '..total_gil)
+        else
+            log('No gil information found.')
+        end
+        
+        -- If export parameter is provided, export gil data to CSV
+        if export ~= nil then
+            local export_file = io.open(windower.addon_path..'data/'..export, 'w')
+            
+            if export_file == nil then
+                error('The file "'..export..'" cannot be created.')
+            else
+                export_file:write('"char";"gil"\n')
+                for _, character_name in ipairs(sorted_names) do
+                    if global_storages[character_name].gil then
+                        export_file:write('"'..character_name..'";"'..global_storages[character_name].gil..'"\n')
+                    end
+                end
+                export_file:write('"TOTAL";"'..total_gil..'"\n')
+                export_file:close()
+                log('The gil results have been saved to "'..export..'"')
+            end
+        end
+        
         return
     end
 
@@ -462,7 +515,7 @@ end
 
 function make_table(tab,tab_offset)
     -- Won't work for circular references or keys containing double quotes
-    local offset = " ":rep(tab_offset)
+    local offset = (" "):rep(tab_offset)
     local ret = "{\n"
     for i,v in pairs(tab) do
         ret = ret..offset..encase_key(i)..' = '
@@ -518,7 +571,7 @@ function update_global_storage()
             if success then
                 global_storages[f:sub(1,-5)] = result
             else
-                warning('Unable to retrieve updated item storage for %s.':format(f:sub(1,-5)))
+                warning(('Unable to retrieve updated item storage for %s.'):format(f:sub(1,-5)))
             end
         end
     end
@@ -604,7 +657,7 @@ windower.register_event('unhandled command', function(command, ...)
     if command:lower() == 'find' then
         local me = windower.ffxi.get_mob_by_target('me')
         if me then
-            handle_command(':%s':format(me.name), ...)
+            handle_command((':%s'):format(me.name), ...)
         else
             handle_command(...)
         end
