@@ -162,6 +162,20 @@ do
         end)
     end
 end
+
+-- Formats a number with commas for thousands
+function format_number(number)
+    local formatted = tostring(number)
+    local k
+    while true do
+        formatted, k = formatted:gsub("^(-?%d+)(%d%d%d)", '%1,%2')
+        if k == 0 then
+            break
+        end
+    end
+    return formatted
+end
+
 string.query_escape = function(str)
     return (str:gsub('[()%.%+?-]', '%%%1'))
 end
@@ -221,14 +235,14 @@ function search(query, export)
         for _, character_name in ipairs(sorted_names) do
             if global_storages[character_name].gil then
                 local char_gil = global_storages[character_name].gil
-                log(character_name..': '..char_gil..' gil')
+                log(character_name..': '..format_number(char_gil)..' gil')
                 total_gil = total_gil + char_gil
                 char_count = char_count + 1
             end
         end
         
         if char_count > 0 then
-            log('Total gil across all characters: '..total_gil)
+            log('Total gil across all characters: '..format_number(total_gil))
         else
             log('No gil information found.')
         end
@@ -243,6 +257,7 @@ function search(query, export)
                 export_file:write('"char";"gil"\n')
                 for _, character_name in ipairs(sorted_names) do
                     if global_storages[character_name].gil then
+                        -- Export raw numbers without formatting for CSV
                         export_file:write('"'..character_name..'";"'..global_storages[character_name].gil..'"\n')
                     end
                 end
