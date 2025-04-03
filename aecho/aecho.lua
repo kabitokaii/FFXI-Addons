@@ -65,7 +65,7 @@ local remedy_map = {
     ['doom'] = function() windower.send_command('input /item "Holy Water" '..windower.ffxi.get_player()["name"]) end,
     ['curse'] = function() windower.send_command('input /item "Holy Water" '..windower.ffxi.get_player()["name"]) end,
     ['bane'] = function() windower.send_command('input /item "Holy Water" '..windower.ffxi.get_player()["name"]) end,
-    ['sleep'] = function() windower.send_command('input /p Help I have been put to sleep!!') end,
+    ['sleep'] = function() windower.send_command("input /p Help! I'm in danger I have been put to sleep!!") end,
 }
 
 windower.register_event('gain buff', function(id)
