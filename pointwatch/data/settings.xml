@@ -53,8 +53,7 @@
             </flags>
             <padding>0</padding>
             <pos>
-                <x>520</x>
-                <y>4</y>
+                <x>268</x>
             </pos>
             <text>
                 <size>12</size>
@@ -86,7 +85,8 @@
             </flags>
             <padding>0</padding>
             <pos>
-                <x>332</x>
+                <x>271</x>
+                <y>2</y>
             </pos>
             <text>
                 <size>12</size>

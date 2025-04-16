@@ -151,12 +151,12 @@ function init_gear_sets()
 
 	sets.precast.WS['Evisceration'] = {ammo=gear.WSbullet,
         head="Mummu Bonnet +2",neck="Fotia Gorget",ear1="Odr Earring",ear2="Moonshade Earring",
-        body="Mummu Jacket +2",hands="Mummu Wrists +2",ring1="Mummu Ring",ring2="Begrudging Ring",
+        body="Mummu Jacket +2",hands="Mummu Wrists +2",ring1="Regal Ring",ring2="Cornelia's Ring",
         back=gear.tp_jse_back,waist="Fotia Belt",legs="Mummu Kecks +2",feet="Mummu Gamash. +2"}
 		
 	sets.precast.WS['Evisceration'].Acc = {ammo=gear.WSbullet,
         head="Adhemar Bonnet +1",neck="Caro Necklace",ear1="Mache Earring +1",ear2="Moonshade Earring",
-        body="Laksa. Frac +3",hands="Chasseur's Gants +3",ring1="Regal Ring",ring2="Epaminondas's Ring",
+        body="Laksa. Frac +3",hands="Chasseur's Gants +3",ring1="Regal Ring",ring2="Cornelia's Ring",
         back=gear.str_wsd_jse_back,waist="Sailfi Belt +1",legs={ name="Nyame Flanchard", augments={'Path: B',}},feet="Lanun Bottes +3"}
 
 	-- sets.precast.WS['Savage Blade'] = {ammo=gear.WSbullet,
@@ -166,7 +166,7 @@ function init_gear_sets()
     
     sets.precast.WS['Savage Blade'] = {ammo=gear.WSbullet,
         head={ name="Nyame Helm", augments={'Path: B',}},neck="Rep. Plat. Medal",ear1="Moonshade Earring",ear2="Ishvara Earring",
-        body="Laksa. Frac +3",hands="Chasseur's Gants +3",ring1="Regal Ring",ring2="Epaminondas's Ring",
+        body="Laksa. Frac +3",hands="Chasseur's Gants +3",ring1="Regal Ring",ring2="Cornelia's Ring",
         back=gear.str_wsd_jse_back,waist="Sailfi Belt +1",legs={ name="Nyame Flanchard", augments={'Path: B',}},feet="Lanun Bottes +3"}
 
     -- sets.precast.WS['Savage Blade'].Acc = {ammo=gear.WSbullet,
