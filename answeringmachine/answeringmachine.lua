@@ -128,10 +128,10 @@ end
 windower.register_event('addon command', function(...)
     local term = table.concat({...}, ' ')
     local broken = split(term, ' ')
-    if broken[1] ~= nil then
-        if broken[1]:upper() == "CLEAR" then
+    if broken[1] ~= nil then        if broken[1]:upper() == "CLEAR" then
             if broken[2] == nil then
                 recording = {}
+                unseen_message_count = 0
                 windower.add_to_chat(4, 'Answering Machine>> Blanking the recordings')
             else
                 local player_upper = broken[2]:upper()
@@ -162,6 +162,16 @@ windower.register_event('addon command', function(...)
                 
                 if not cleared then
                     windower.add_to_chat(5, 'Cancel error: Could not find specified player in recording history')
+                else
+                    -- Recalculate unseen message count after clearing specific player
+                    unseen_message_count = 0
+                    for i, v in pairs(recording) do
+                        for n, m in pairs(v) do
+                            if not m.seen then
+                                unseen_message_count = unseen_message_count + 1
+                            end
+                        end
+                    end
                 end
             end
         elseif broken[1]:upper() == "LIST" then
