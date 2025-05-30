@@ -30,10 +30,10 @@
             </self>
         </blinking>
         <cantrelle>
-            <race>6</race>
+
         </cantrelle>
         <ellari>
-            <race>6</race>
+
         </ellari>
         <ginee>
             <race>6</race>
@@ -60,7 +60,7 @@
             <race>6</race>
         </orabelle>
         <others>
-            <race>5</race>
+
         </others>
         <profiles>
             <taru>
@@ -103,7 +103,7 @@
             <race>5</race>
         </sietch>
         <xicu>
-            <race>6</race>
+
         </xicu>
     </global>
 </settings>

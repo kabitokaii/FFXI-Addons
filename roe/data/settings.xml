@@ -6,7 +6,13 @@
         <clearall>false</clearall>
         <clearprogress>false</clearprogress>
         <profiles>
+            <ambuscade>3998,3758,3760</ambuscade>
+            <daily>4083,16,12,4084,4082</daily>
+            <deeds>3779,3780,3781,3782,3783,3784,3785,3786,3787,3788</deeds>
             <default />
+            <monthly>3777,3770,3768,3776,3771,3769,3027,3778,3995,3775</monthly>
+            <peculiar>3803,3789,3796,3798,3790,3793,3800,3801,3802,3799,3792,3797,3795,3791,3794</peculiar>
+            <vagary>3403,3406,3408,3405,3409,3400,3407,3402,3401,3404</vagary>
         </profiles>
     </global>
 </settings>

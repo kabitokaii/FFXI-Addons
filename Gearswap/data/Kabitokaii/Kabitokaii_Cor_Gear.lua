@@ -164,7 +164,7 @@ function init_gear_sets()
     --     body="Laksa. Frac +3",hands="Meg. Gloves +2",ring1="Regal Ring",ring2="Rufescent Ring",
     --     back=gear.str_wsd_jse_back,waist="Sailfi Belt +1",legs=gear.herculean_wsd_legs,feet="Lanun Bottes +3"}
     
-    sets.precast.WS['Savage Blade'] = {ammo=gear.WSbullet,
+   sets.precast.WS['Savage Blade'] = {ammo=gear.WSbullet,
         head={ name="Nyame Helm", augments={'Path: B',}},neck="Rep. Plat. Medal",ear1="Moonshade Earring",ear2="Ishvara Earring",
         body="Laksa. Frac +3",hands="Chasseur's Gants +3",ring1="Regal Ring",ring2="Cornelia's Ring",
         back=gear.str_wsd_jse_back,waist="Sailfi Belt +1",legs={ name="Nyame Flanchard", augments={'Path: B',}},feet="Lanun Bottes +3"}
@@ -197,18 +197,18 @@ function init_gear_sets()
 	
     sets.precast.WS['Leaden Salute'] = {ammo=gear.MAbullet,
         head="Pixie Hairpin +1",neck="Comm. Charm +2",ear1="Moonshade Earring",ear2="Friomisi Earring",
-        body="Lanun Frac +3",hands="Nyame Gauntlets",ring1="Epaminondas's Ring",ring2="Dingir Ring",
-        back=gear.magic_wsd_jse_back,waist="Eschan Stone",legs="Nyame Flanchard",feet="Lanun Bottes +3"}
+        body="Lanun Frac +3",hands={ name="Nyame Gauntlets", augments={'Path: B',}},ring1="Cornelia's Ring",ring2="Dingir Ring",
+        back=gear.magic_wsd_jse_back,waist="Orpheus's Sash",legs={ name="Nyame Flanchard", augments={'Path: B',}},feet="Lanun Bottes +3"}
 		
     sets.precast.WS['Leaden Salute'].Acc = {ammo=gear.MAbullet,
         head="Pixie Hairpin +1",neck="Comm. Charm +2",ear1="Moonshade Earring",ear2="Friomisi Earring",
-        body="Lanun Frac +3",hands="Nyame Gauntlets",ring1="Epaminondas's Ring",ring2="Dingir Ring",
-        back=gear.magic_wsd_jse_back,waist="Eschan Stone",legs="Nyame Flanchard",feet="Lanun Bottes +3"}
-
-    sets.precast.WS['Aeolian Edge'] = {ammo="Animikii Bullet",
-        head=gear.herculean_nuke_head,neck="Baetyl Pendant",ear1="Moonshade Earring",ear2="Friomisi Earring",
-        body="Laksa. Frac +3",hands="Carmine Fin. Ga. +1",ring1="Metamor. Ring +1",ring2="Dingir Ring",
-        back=gear.magic_wsd_jse_back,waist="Eschan Stone",legs="Nyame Flanchard",feet="Lanun Bottes +3"}
+        body="Lanun Frac +3",hands="Nyame Gauntlets",ring1="Cornelia's Ring",ring2="Dingir Ring",
+        back=gear.magic_wsd_jse_back,waist="Orpheus's Sash",legs="Nyame Flanchard",feet="Lanun Bottes +3"}
+-- ammo="Animikii Bullet",
+    sets.precast.WS['Aeolian Edge'] = {ammo="Hauksbok Bullet",
+        head={ name="Nyame Helm", augments={'Path: B',}},neck="Baetyl Pendant",ear1="Moonshade Earring",ear2="Friomisi Earring",
+        body="Laksa. Frac +3",hands="Chasseur's Gants +3",ring1="Metamor. Ring +1",ring2="Dingir Ring",
+        back=gear.magic_wsd_jse_back,waist="Orpheus's Sash",legs={ name="Nyame Flanchard", augments={'Path: B',}},feet="Lanun Bottes +3"}
 
     sets.precast.WS['Wildfire'] = {ammo=gear.MAbullet,
         head=gear.herculean_nuke_head,neck="Comm. Charm +2",ear1="Crematio Earring",ear2="Friomisi Earring",
