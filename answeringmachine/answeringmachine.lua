@@ -73,17 +73,32 @@ local function pl(num)
     end
 end
 
-local function arrows(bool, name)
+local function arrows(bool, name, msg_type)
+    local type_prefix = ""
+    if msg_type == 'party' then
+        type_prefix = "[Party] "
+    elseif msg_type == 'linkshell' then
+        type_prefix = "[LS] "
+    end
+    
     if bool then
-        return name .. '>> '
+        return type_prefix .. name .. '>> '
     else
-        return '>>' .. name .. ' : '
+        return type_prefix .. '>>' .. name .. ' : '
     end
 end
 
 local function print_messages(tab, name)
     for p, q in ipairs(tab) do
-        windower.add_to_chat(4, os.date('%H:%M:%S', q.timestamp) .. ' ' .. arrows(q.outgoing, uc_first(name)) .. q.message)
+        local msg_type = q.type or 'tell'
+        local display_name = name
+        
+        -- For mentions, use the actual sender name if available
+        if (msg_type == 'party' or msg_type == 'linkshell') and q.sender then
+            display_name = q.sender
+        end
+        
+        windower.add_to_chat(4, os.date('%H:%M:%S', q.timestamp) .. ' ' .. arrows(q.outgoing, uc_first(display_name), msg_type) .. q.message)
         tab[p].seen = true
     end
 end
@@ -118,16 +133,53 @@ windower.register_event('addon command', function(...)
             if broken[2] == nil then
                 recording = {}
                 windower.add_to_chat(4, 'Answering Machine>> Blanking the recordings')
-            elseif recording[broken[2]:upper()] then
-                windower.add_to_chat(4, 'Answering Machine>> Deleting conversation with ' .. uc_first(broken[2]))
-                recording[broken[2]:upper()] = nil
             else
-                windower.add_to_chat(5, 'Cancel error: Could not find specified player in tell history')
+                local player_upper = broken[2]:upper()
+                local cleared = false
+                
+                -- Check and clear direct tell recording
+                if recording[player_upper] then
+                    windower.add_to_chat(4, 'Answering Machine>> Deleting tell conversation with ' .. uc_first(broken[2]))
+                    recording[player_upper] = nil
+                    cleared = true
+                end
+                
+                -- Check and clear party mention recording
+                local party_key = player_upper .. '_PARTY'
+                if recording[party_key] then
+                    windower.add_to_chat(4, 'Answering Machine>> Deleting party mentions from ' .. uc_first(broken[2]))
+                    recording[party_key] = nil
+                    cleared = true
+                end
+                
+                -- Check and clear linkshell mention recording
+                local ls_key = player_upper .. '_LINKSHELL'
+                if recording[ls_key] then
+                    windower.add_to_chat(4, 'Answering Machine>> Deleting linkshell mentions from ' .. uc_first(broken[2]))
+                    recording[ls_key] = nil
+                    cleared = true
+                end
+                
+                if not cleared then
+                    windower.add_to_chat(5, 'Cancel error: Could not find specified player in recording history')
+                end
             end
         elseif broken[1]:upper() == "LIST" then
             local trig
             for i, v in pairs(recording) do
-                windower.add_to_chat(5, #v .. ' exchange' .. pl(#v) .. ' with ' .. uc_first(i))
+                local display_name = i
+                local msg_type = "tells"
+                
+                -- Check if this is a mention recording
+                if i:find('_PARTY') then
+                    display_name = i:gsub('_PARTY', '')
+                    msg_type = "party mentions"
+                elseif i:find('_LINKSHELL') then
+                    display_name = i:gsub('_LINKSHELL', '')
+                    msg_type = "linkshell mentions"
+                end
+                
+                windower.add_to_chat(5, #v .. ' ' .. msg_type .. ' with ' .. uc_first(display_name))
                 trig = true
             end
             if not trig then
@@ -135,26 +187,67 @@ windower.register_event('addon command', function(...)
             end
         elseif broken[1]:upper() == "PLAY" then
             if broken[2] then
-                if recording[broken[2]:upper()] then
-                    local num = #recording[broken[2]:upper()]
-                    windower.add_to_chat(5, num .. ' exchange' .. pl(num) .. ' with ' .. uc_first(broken[2]))
-                    print_messages(recording[broken[2]:upper()], broken[2])
-                else
+                local player_upper = broken[2]:upper()
+                local found = false
+                
+                -- Check for direct tell recording
+                if recording[player_upper] then
+                    local num = #recording[player_upper]
+                    windower.add_to_chat(5, num .. ' tell exchange' .. pl(num) .. ' with ' .. uc_first(broken[2]))
+                    print_messages(recording[player_upper], broken[2])
+                    found = true
+                end
+                
+                -- Check for party mention recording
+                local party_key = player_upper .. '_PARTY'
+                if recording[party_key] then
+                    local num = #recording[party_key]
+                    windower.add_to_chat(5, num .. ' party mention' .. pl(num) .. ' from ' .. uc_first(broken[2]))
+                    print_messages(recording[party_key], broken[2])
+                    found = true
+                end
+                
+                -- Check for linkshell mention recording
+                local ls_key = player_upper .. '_LINKSHELL'
+                if recording[ls_key] then
+                    local num = #recording[ls_key]
+                    windower.add_to_chat(5, num .. ' linkshell mention' .. pl(num) .. ' from ' .. uc_first(broken[2]))
+                    print_messages(recording[ls_key], broken[2])
+                    found = true
+                end
+                
+                if not found then
                     windower.add_to_chat(5, 'No exchanges recorded with ' .. uc_first(broken[2]))
                 end
             else
                 windower.add_to_chat(4, 'Answering Machine>> Playing back all messages')
                 for i, v in pairs(recording) do
-                    windower.add_to_chat(5, #v .. ' exchange' .. pl(#v) .. ' with ' .. uc_first(i))
-                    print_messages(v, i)
+                    local display_name = i
+                    local msg_type = "tell exchange"
+                    
+                    if i:find('_PARTY') then
+                        display_name = i:gsub('_PARTY', '')
+                        msg_type = "party mention"
+                    elseif i:find('_LINKSHELL') then
+                        display_name = i:gsub('_LINKSHELL', '')
+                        msg_type = "linkshell mention"
+                    end
+                    
+                    windower.add_to_chat(5, #v .. ' ' .. msg_type .. pl(#v) .. ' with ' .. uc_first(display_name))
+                    print_messages(v, display_name)
                 end
             end
         elseif broken[1]:upper() == "HELP" then
-            print('am clear <name> : Clears current messages, or only messages from <name> if provided')
+            print('am clear <n> : Clears current messages, or only messages from <n> if provided')
             print('am help : Lists these commands!')
-            print('am list : Lists the names of people who have sent you tells')
+            print('am list : Lists the names of people who have sent you tells or mentioned you')
             print('am msg <message> : Sets your away message, which will be sent to non-GMs only once after plugin load or message clear')
-            print('am play <name> : Plays current messages, or only messages from <name> if provided')
+            print('am play <n> : Plays current messages, or only messages from <n> if provided')
+            print('')
+            print('The addon now records:')
+            print('- Tell messages (triggers away message)')
+            print('- Party chat messages that mention your name')
+            print('- Linkshell chat messages that mention your name')
         elseif broken[1]:upper() == "MSG" then
             table.remove(broken, 1)
             if #broken ~= 0 then
@@ -169,15 +262,36 @@ end)
 
 windower.register_event('chat message', function(message, player, mode, isGM)
     if mode == 3 then
+        -- Handle tell messages (existing functionality)
         if recording[player:upper()] then
-            recording[player:upper()][#recording[player:upper()] + 1] = {message=message, outgoing=false, timestamp=os.time(), seen=false}
+            recording[player:upper()][#recording[player:upper()] + 1] = {message=message, outgoing=false, timestamp=os.time(), seen=false, type='tell'}
         else
-            recording[player:upper()] = {{message=message, outgoing=false, timestamp=os.time(), seen=false}}
+            recording[player:upper()] = {{message=message, outgoing=false, timestamp=os.time(), seen=false, type='tell'}}
             if away_msg and not isGM then
                 windower.send_command('@input /tell ' .. player .. ' ' .. away_msg)
             end
         end
         unseen_message_count = unseen_message_count + 1
+    elseif mode == 4 or mode == 5 then
+        -- Handle party chat (mode 4) and linkshell chat (mode 5) mentions
+        local player_info = windower.ffxi.get_player()
+        if player_info and player_info.name then
+            local player_name = player_info.name:lower()
+            local message_lower = message:lower()
+            
+            -- Check if the message mentions the player's name
+            if message_lower:find(player_name, 1, true) then
+                local chat_type = mode == 4 and 'party' or 'linkshell'
+                local record_key = player:upper() .. '_' .. chat_type:upper()
+                
+                if recording[record_key] then
+                    recording[record_key][#recording[record_key] + 1] = {message=message, outgoing=false, timestamp=os.time(), seen=false, type=chat_type, sender=player}
+                else
+                    recording[record_key] = {{message=message, outgoing=false, timestamp=os.time(), seen=false, type=chat_type, sender=player}}
+                end
+                unseen_message_count = unseen_message_count + 1
+            end
+        end
     end
 end)
 
@@ -186,9 +300,9 @@ windower.register_event('outgoing chunk', function(id, original, modified, injec
         local name = trim(original:sub(0x6, 0x14))
         local message = trim(original:sub(0x15))
         if recording[name:upper()] then
-            recording[name:upper()][#recording[name:upper()] + 1] = {message=message, outgoing=true, timestamp=os.time(), seen=true}
+            recording[name:upper()][#recording[name:upper()] + 1] = {message=message, outgoing=true, timestamp=os.time(), seen=true, type='tell'}
         else
-            recording[name:upper()] = {{message=message, outgoing=true, timestamp=os.time(), seen=true}}
+            recording[name:upper()] = {{message=message, outgoing=true, timestamp=os.time(), seen=true, type='tell'}}
         end
     end
 end)
@@ -214,5 +328,5 @@ windower.register_event('postrender', function()
     end
 end)
 
-windower.register_event('keyboard', activity)
-windower.register_event('mouse', activity)
+-- windower.register_event('keyboard', activity)
+-- windower.register_event('mouse', activity)
