@@ -1,4 +1,4 @@
-_addon.name = 'QuickTrade 2'
+_addon.name = 'QuickTrade2'
 _addon.author = 'Valok@Asura'
 _addon.version = '1.0.0'
 _addon.command = 'qt2'
