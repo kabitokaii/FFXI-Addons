@@ -64,7 +64,4 @@
         <showfellow>true</showfellow>
         <visible>false</visible>
     </global>
-    <kabitokaii>
-        <visible>true</visible>
-    </kabitokaii>
 </settings>

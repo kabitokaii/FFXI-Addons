@@ -187,24 +187,24 @@ function init_gear_sets()
 
     sets.midcast.Drain = {main="Rubicundity",sub="Ammurapi Shield",ammo="Pemphredo Tathlum",
         head="Pixie Hairpin +1",neck="Erra Pendant",ear1="Malignance Earring",ear2="Regal Earring",
-        body="Wicce Coat +3",hands="Wicce Gloves +2",ring1="Evanescence Ring",ring2="Archon Ring",
+        body="Wicce Coat +3",hands="Wicce Gloves +3",ring1="Evanescence Ring",ring2="Archon Ring",
         back=gear.nuke_jse_back,waist="Fucho-no-obi",legs="Wicce Chausses +3",feet="Agwu's Pigaches"}
     
     sets.midcast.Aspir = sets.midcast.Drain
 	
 	sets.midcast.Aspir.Death = {main="Marin Staff +1",sub="Enki Strap",ammo="Pemphredo Tathlum",
         head="Pixie Hairpin +1",neck="Erra Pendant",ear1="Malignance Earring",ear2="Regal Earring",
-        body="Wicce Coat +3",hands="Wicce Gloves +2",ring1="Evanescence Ring",ring2="Archon Ring",
+        body="Wicce Coat +3",hands="Wicce Gloves +3",ring1="Evanescence Ring",ring2="Archon Ring",
         back=gear.nuke_jse_back,waist="Fucho-no-obi",legs="Wicce Chausses +3",feet="Agwu's Pigaches"}
 	
 	sets.midcast.Death = {main="Marin Staff +1",sub="Enki Strap",ammo="Pemphredo Tathlum",
         head="Pixie Hairpin +1",neck="Mizu. Kubikazari",ear1="Malignance Earring",ear2="Etiolation Earring",
-        body="Wicce Coat +3",hands="Wicce Gloves +2",ring1="Mujin Band",ring2="Archon Ring",
+        body="Wicce Coat +3",hands="Wicce Gloves +3",ring1="Mujin Band",ring2="Archon Ring",
         back=gear.nuke_jse_back,waist="Yamabuki-no-Obi",legs="Wicce Chausses +3",feet="Amalric Nails +1"}
 
 	sets.midcast.Comet = {main="Lathi",sub="Enki Strap",ammo="Ghastly Tathlum +1",
         head="Pixie Hairpin +1",neck="Src. Stole +2",ear1="Malignance Earring",ear2="Regal Earring",
-        body=gear.merlinic_nuke_body,hands="Wicce Gloves +2",ring1="Freke Ring",ring2="Archon Ring",
+        body=gear.merlinic_nuke_body,hands="Wicce Gloves +3",ring1="Freke Ring",ring2="Archon Ring",
         back=gear.nuke_jse_back,waist="Yamabuki-no-Obi",legs="Wicce Chausses +3",feet="Amalric Nails +1"}
 	
 	    sets.midcast.Stun = {main="Marin Staff +1",sub="Clerisy Strap +1",ammo="Hasty Pinion +1",
@@ -230,23 +230,23 @@ function init_gear_sets()
     -- Elemental Magic sets
     
     sets.midcast['Elemental Magic'] = {main="Marin Staff +1",sub="Enki Strap",ammo="Ghastly Tathlum +1",
-        head="Wicce Petasos +2",neck="Src. Stole +2",ear1="Regal Earring",ear2="Friomisi Earring",
-        body="Wicce Coat +3",hands="Wicce Gloves +2",ring1="Freke Ring",ring2="Acumen Ring",
+        head="Wicce Petasos +3",neck="Src. Stole +2",ear1="Regal Earring",ear2="Friomisi Earring",
+        body="Wicce Coat +3",hands="Wicce Gloves +3",ring1="Freke Ring",ring2="Acumen Ring",
         back=gear.nuke_jse_back,waist="Eschan Stone",legs="Wicce Chausses +3",feet="Wicce Sabots +3"}
 		
     sets.midcast['Elemental Magic'].Resistant = {main="Marin Staff +1",sub="Enki Strap",ammo="Pemphredo Tathlum",
-        head="Wicce Petasos +2",neck="Src. Stole +2",ear1="Barkarole Earring",ear2="Regal Earring",
-        body="Wicce Coat +3",hands="Wicce Gloves +2",ring1="Freke Ring",ring2="Acumen Ring",
+        head="Wicce Petasos +3",neck="Src. Stole +2",ear1="Barkarole Earring",ear2="Regal Earring",
+        body="Wicce Coat +3",hands="Wicce Gloves +3",ring1="Freke Ring",ring2="Acumen Ring",
         back=gear.nuke_jse_back,waist="Eschan Stone",legs="Wicce Chausses +3",feet="Wicce Sabots +3"}
 		
 	sets.midcast['Elemental Magic'].HighTierNuke = {main="Marin Staff +1",sub="Enki Strap",ammo="Ghastly Tathlum +1",
-        head="Wicce Petasos +2",neck="Src. Stole +2",ear1="Barkarole Earring",ear2="Regal Earring",
-        body="Wicce Coat +3",hands="Wicce Gloves +2",ring1="Freke Ring",ring2="Acumen Ring",
+        head="Wicce Petasos +3",neck="Src. Stole +2",ear1="Barkarole Earring",ear2="Regal Earring",
+        body="Wicce Coat +3",hands="Wicce Gloves +3",ring1="Freke Ring",ring2="Acumen Ring",
         back=gear.nuke_jse_back,waist="Eschan Stone",legs="Wicce Chausses +3",feet="Wicce Sabots +3"}
 	
 	sets.midcast['Elemental Magic'].HighTierNuke.Resistant = {main="Marin Staff +1",sub="Enki Strap",ammo="Ghastly Tathlum +1",
-        head="Wicce Petasos +2",neck="Src. Stole +2",ear1="Barkarole Earring",ear2="Regal Earring",
-        body="Wicce Coat +3",hands="Wicce Gloves +2",ring1="Freke Ring",ring2="Acumen Ring",
+        head="Wicce Petasos +3",neck="Src. Stole +2",ear1="Barkarole Earring",ear2="Regal Earring",
+        body="Wicce Coat +3",hands="Wicce Gloves +3",ring1="Freke Ring",ring2="Acumen Ring",
         back=gear.nuke_jse_back,waist="Eschan Stone",legs="Wicce Chausses +3",feet="Wicce Sabots +3"}
 	
 	sets.midcast.Helix = sets.midcast['Elemental Magic']
@@ -271,12 +271,12 @@ function init_gear_sets()
 	-- Gear for Magic Burst mode.
     sets.MagicBurst = {main="Bunzi's Rod",sub="Ammurapi Shield",ammo="Ghastly Tathlum +1",
 		head="Ea Hat +1",neck="Mizukage-no-Kubikazari",ear1="Malignance Earring",ear2="Regal Earring",
-		body="Ea Houppe. +1",hands="Wicce Gloves +2",ring1="Freke Ring",ring2="Mujin Band",
+		body="Ea Houppe. +1",hands="Wicce Gloves +3",ring1="Freke Ring",ring2="Mujin Band",
 		back=gear.nuke_jse_back,waist="Eschan Stone",legs="Ea Slops +1",feet="Amalric Nails +1"}
 
 	sets.ResistantMagicBurst = {main="Bunzi's Rod",sub="Ammurapi Shield",ammo="Ghastly Tathlum +1",
 		head="Ea Hat +1",neck="Mizukage-no-Kubikazari",ear1="Malignance Earring",ear2="Regal Earring",
-		body="Ea Houppe. +1",hands="Wicce Gloves +2",ring1="Mujin Band",ring2="Metamor. Ring +1",
+		body="Ea Houppe. +1",hands="Wicce Gloves +3",ring1="Mujin Band",ring2="Metamor. Ring +1",
 		back=gear.nuke_jse_back,waist="Eschan Stone",legs="Ea Slops +1",feet="Amalric Nails +1"}
 	
     -- Sets to return to when not performing an action.
@@ -297,8 +297,8 @@ function init_gear_sets()
 
     -- Idle mode that keeps PDT gear on, but doesn't prevent normal gear swaps for precast/etc.
     sets.idle.PDT = {main="Malignance Pole",sub="Umbra Strap",ammo="Staunch Tathlum +1",
-        head="Wicce Petasos +2",neck="Loricate Torque +1",ear1="Ethereal Earring",ear2="Etiolation Earring",
-        body="Wicce Coat +3",hands="Wicce Gloves +2",ring1="Defending Ring",ring2="Dark Ring",
+        head="Wicce Petasos +3",neck="Loricate Torque +1",ear1="Ethereal Earring",ear2="Etiolation Earring",
+        body="Wicce Coat +3",hands="Wicce Gloves +3",ring1="Defending Ring",ring2="Dark Ring",
         back="Shadow Mantle",waist="Carrier's Sash",legs="Assid. Pants +1",feet="Wicce Sabots +3"}
 		
 	sets.idle.MDT = {main="Marin Staff +1",sub="Ammurapi Shield",ammo="Staunch Tathlum +1",

@@ -313,18 +313,18 @@ function init_gear_sets()
 	sets.DWMax = {ear1="Dudgeon Earring",ear2="Heartseeker Earring",body="Adhemar Jacket +1",hands="Floral Gauntlets",waist="Reiki Yotai"}
 
 	-- Weapons sets
-	sets.weapons.Default = {main="Naegling",sub="Nusku Shield",range="Doomsday"}
-	sets.weapons.Ranged = {main="Rostam",sub="Nusku Shield",range="Doomsday"}
+	sets.weapons.Default = {main="Naegling",sub="Nusku Shield",range="Molybdosis"}
+	sets.weapons.Ranged = {main="Rostam",sub="Nusku Shield",range="Molybdosis"}
 	sets.weapons.Evisceration = {main="Tauret",sub="Nusku Shield",range="Anarchy +2"}
-	sets.weapons.DualWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Doomsday"}
+	sets.weapons.DualWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Molybdosis"}
 	sets.weapons.DualSavageWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Anarchy +2"}
 	sets.weapons.DualEvisceration = {main="Tauret",sub="Blurred Knife +1",range="Anarchy +2"}
 	sets.weapons.Savage = {main="Naegling",sub="Nusku Shield",range="Anarchy +2"}
-	sets.weapons.DualLeadenRanged = {main="Rostam",sub="Tauret",range="Doomsday"}
-	sets.weapons.DualLeadenMelee = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Doomsday"}
-	sets.weapons.DualAeolian = {main="Rostam",sub="Tauret",range="Anarchy +2"}
-	sets.weapons.DualLeadenMeleeAcc = {main="Naegling",sub="Blurred Knife +1",range="Doomsday"}
-	sets.weapons.DualRanged = {main="Rostam",sub="Kustawi +1",range="Doomsday"}
+	sets.weapons.DualLeadenRanged = {main="Rostam",sub="Tauret",range="Molybdosis"}
+	sets.weapons.DualLeadenMelee = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Molybdosis"}
+	sets.weapons.DualAeolian = {main="Rostam",sub="Tauret",range="Molybdosis"}
+	sets.weapons.DualLeadenMeleeAcc = {main="Naegling",sub="Blurred Knife +1",range="Molybdosis"}
+	sets.weapons.DualRanged = {main="Rostam",sub="Kustawi +1",range="Molybdosis"}
 	
     -- Engaged sets
 
@@ -335,7 +335,7 @@ function init_gear_sets()
     
     -- Normal melee group
     sets.engaged = {
-		head="Dampening Tam",neck="Iskur Gorget",ear1="Cessance Earring",ear2="Brutal Earring",
+		head="Dampening Tam",neck="Iskur Gorget",ear1="Cessance Earring",ear2="Telos Earring",
 		body="Meg. Cuirie +2",hands="Adhemar Wrist. +1",ring1="Petrov Ring",ring2="Epona's Ring",
 		back=gear.tp_jse_back,waist="Windbuffet Belt +1",legs="Samnuha Tights",feet="Herculean Boots"}
     
@@ -355,7 +355,7 @@ function init_gear_sets()
         back=gear.tp_jse_back,waist="Olseni Belt",legs="Malignance Tights",feet="Malignance Boots"}
 
     sets.engaged.DW = {
-		head="Dampening Tam",neck="Sanctity Necklace",ear1="Eabani Earring",ear2="Mache Earring +1",
+		head="Dampening Tam",neck="Sanctity Necklace",ear1="Eabani Earring",ear2="Telos Earring",
 		body={ name="Adhemar Jacket +1", augments={'DEX+12','AGI+12','Accuracy+20',}},hands="Adhemar Wrist. +1",ring1="Petrov Ring",ring2="Chirich Ring +1",
 		back=gear.tp_jse_back,waist="Reiki Yotai",legs="Samnuha Tights",feet="Herculean Boots"}
     

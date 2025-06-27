@@ -10,8 +10,8 @@
     </global>
     <kabitokaii>
         <top_left>
-            <x>100</x>
-            <y>100</y>
+            <x>903</x>
+            <y>75</y>
         </top_left>
         <user_ui_scalar>1.5</user_ui_scalar>
     </kabitokaii>
