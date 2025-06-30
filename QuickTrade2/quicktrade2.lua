@@ -1341,6 +1341,14 @@ tradeGroup.Alexandrite = {  -- Status: Untested
 	{item = 'Alexandrite'},
 }
 
+tradeGroup.Beitetsu = {  -- Status: Untested
+	NPC = {
+		{name = 'Oboro'},
+	},
+
+	{item = 'Beitetsu'},
+}
+
 tradeGroup.SoulPlate = {  -- Status: Untested
 	NPC = {
 		{name = 'Sanraku'},

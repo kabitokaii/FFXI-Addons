@@ -313,18 +313,19 @@ function init_gear_sets()
 	sets.DWMax = {ear1="Dudgeon Earring",ear2="Heartseeker Earring",body="Adhemar Jacket +1",hands="Floral Gauntlets",waist="Reiki Yotai"}
 
 	-- Weapons sets
-	sets.weapons.Default = {main="Naegling",sub="Nusku Shield",range="Molybdosis"}
-	sets.weapons.Ranged = {main="Rostam",sub="Nusku Shield",range="Molybdosis"}
+	sets.weapons.Default = {main="Naegling",sub="Nusku Shield",range="Death Penalty"}
+	sets.weapons.Ranged = {main="Rostam",sub="Nusku Shield",range="Death Penalty"}
 	sets.weapons.Evisceration = {main="Tauret",sub="Nusku Shield",range="Anarchy +2"}
-	sets.weapons.DualWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Molybdosis"}
+	sets.weapons.DualWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Death Penalty"}
 	sets.weapons.DualSavageWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Anarchy +2"}
 	sets.weapons.DualEvisceration = {main="Tauret",sub="Blurred Knife +1",range="Anarchy +2"}
 	sets.weapons.Savage = {main="Naegling",sub="Nusku Shield",range="Anarchy +2"}
-	sets.weapons.DualLeadenRanged = {main="Rostam",sub="Tauret",range="Molybdosis"}
-	sets.weapons.DualLeadenMelee = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Molybdosis"}
-	sets.weapons.DualAeolian = {main="Rostam",sub="Tauret",range="Molybdosis"}
-	sets.weapons.DualLeadenMeleeAcc = {main="Naegling",sub="Blurred Knife +1",range="Molybdosis"}
-	sets.weapons.DualRanged = {main="Rostam",sub="Kustawi +1",range="Molybdosis"}
+	sets.weapons.DualLeadenRanged = {main="Rostam",sub="Tauret",range="Death Penalty"}
+	sets.weapons.DualLeadenMelee = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Death Penalty"}
+	sets.weapons.DualAeolian = {main="Rostam",sub="Tauret",range="Death Penalty"}
+	sets.weapons.DualLeadenMeleeAcc = {main="Naegling",sub="Blurred Knife +1",range="Death Penalty"}
+	sets.weapons.DualRanged = {main="Rostam",sub="Kustawi +1",range="Death Penalty"}
+    -- sets.weapons.Trials = {main="Bronze Knife",sub="Bronze Knife",range="Death Penalty"}
 	
     -- Engaged sets
 
