@@ -10,10 +10,10 @@ function user_job_setup()
 	state.Weapons:options('Default','Ranged','Savage','Evisceration','DualWeapons','DualSavageWeapons','DualEvisceration','DualLeadenRanged','DualLeadenMelee','DualAeolian','DualLeadenMeleeAcc','DualRanged','DualProcWeapons','None')
 	state.CompensatorMode:options('Always','300','1000','Never')
 
-    gear.RAbullet = "Eminent Bullet"
-    gear.WSbullet = "Eminent Bullet"
-    gear.MAbullet = "Eminent Bullet" --For MAB WS, do not put single-use bullets here.
-    gear.QDbullet = "Eminent Bullet"
+    gear.RAbullet = "Living Bullet"
+    gear.WSbullet = "Living Bullet"
+    gear.MAbullet = "Living Bullet" --For MAB WS, do not put single-use bullets here.
+    gear.QDbullet = "Living Bullet"
     options.ammo_warning_limit = 15
     --Ikenga_vest_bonus = 190  -- It is 190 at R20. Uncomment if you need to manually adjust because you are using below R20
 
@@ -56,7 +56,7 @@ function init_gear_sets()
 
     -- Precast sets to enhance JAs
 
-	sets.precast.JA['Triple Shot'] = {body="Chasseur's Frac +1"}
+	sets.precast.JA['Triple Shot'] = {body="Chasseur's Frac +2"}
     sets.precast.JA['Snake Eye'] = {legs="Lanun Trews +1"}
     sets.precast.JA['Wild Card'] = {feet="Lanun Bottes +3"}
     sets.precast.JA['Random Deal'] = {body="Lanun Frac +3"}
@@ -64,15 +64,15 @@ function init_gear_sets()
 
     sets.precast.CorsairRoll = {main="Rostam",range="Compensator",
         head="Lanun Tricorne +3",neck="Regal Necklace",ear1="Etiolation Earring",ear2="Sanare Earring",
-        body="Lanun Frac +3",hands="Chasseur's Gants +3",ring1="Barataria Ring",ring2="Dark Ring",
+        body="Lanun Frac +3",hands="Chasseur's Gants +3",ring1="Barataria Ring",ring2="Luzaf's Ring",
         back=gear.tp_jse_back,waist="Flume Belt +1",legs="Desultor Tassets",feet="Malignance Boots"}
 
     sets.precast.LuzafRing = {ring2="Luzaf's Ring"}
     
     sets.precast.CorsairRoll["Caster's Roll"] = set_combine(sets.precast.CorsairRoll, {legs="Chas. Culottes +1"})
     sets.precast.CorsairRoll["Courser's Roll"] = set_combine(sets.precast.CorsairRoll, {feet="Chass. Bottes +1"})
-    sets.precast.CorsairRoll["Blitzer's Roll"] = set_combine(sets.precast.CorsairRoll, {head="Chass. Tricorne +1"})
-    sets.precast.CorsairRoll["Tactician's Roll"] = set_combine(sets.precast.CorsairRoll, {body="Chasseur's Frac +1"})
+    sets.precast.CorsairRoll["Blitzer's Roll"] = set_combine(sets.precast.CorsairRoll, {head="Chass. Tricorne +2"})
+    sets.precast.CorsairRoll["Tactician's Roll"] = set_combine(sets.precast.CorsairRoll, {body="Chasseur's Frac +2"})
     sets.precast.CorsairRoll["Allies' Roll"] = set_combine(sets.precast.CorsairRoll, {hands="Chasseur's Gants +3"})
     
     sets.precast.CorsairShot = {ammo=gear.QDbullet,
@@ -123,6 +123,18 @@ function init_gear_sets()
         head="Chass. Tricorne +1",neck="Comm. Charm +2",
         body="Laksa. Frac +3",hands="Carmine Fin. Ga. +1",ring1="Crepuscular Ring",
         back=gear.snapshot_jse_back,waist="Impulse Belt",legs="Laksa. Trews +3",feet="Meg. Jam. +2"}
+        
+--     sets.precast.RA = {
+-- 	ammo="Chrono Bullet",
+--     head="Chass. Tricorne +3",
+--     body="Oshosi Vest",
+--     hands={ name="Lanun Gants +3", augments={'Enhances "Fold" effect',}},
+--     legs={ name="Lanun Trews +3", augments={'Enhances "Snake Eye" effect',}},
+--     feet="Meg. Jam. +2",
+--     neck={ name="Comm. Charm +2", augments={'Path: A',}},
+--     waist="Yemaya Belt",
+--     back={ name="Camulus's Mantle", augments={'"Snapshot"+10',}},
+-- }
 		
 	sets.precast.RA.Flurry = set_combine(sets.precast.RA, {waist="Yemaya Belt",legs="Adhemar Kecks +1"})
 	sets.precast.RA.Flurry2 = set_combine(sets.precast.RA, {waist="Yemaya Belt",legs="Adhemar Kecks +1"})
