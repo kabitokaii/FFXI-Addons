@@ -15,4 +15,7 @@
     <sietch>
         <mode>blacklist</mode>
     </sietch>
+    <takikko>
+        <mode>blacklist</mode>
+    </takikko>
 </settings>

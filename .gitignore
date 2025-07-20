@@ -43,7 +43,7 @@ luac.out
 Silmaril
 CurePlease_Addon
 data
-
+logs
 # Configuration files
 settings.xml
 findAll/data/*

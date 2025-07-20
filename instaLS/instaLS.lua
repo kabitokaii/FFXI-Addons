@@ -25,69 +25,118 @@
 --SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 _addon.name = 'instaLS'
-_addon.version = 0.160309
+_addon.version = 0.250421
 _addon.author = 'Byrth'
 
-flag=false
-chatmode = {}
-chatcolor = {}
-message = false
-require 'strings'
-
+linkshell_inventories_loaded = true
+queue = {}
+require('strings')
+bit = require 'bit'
 
 function translate_escape(str)
     return str:escape():gsub(string.char(0xFD)..".-"..string.char(0xFD),string.char(0xEF,0x27).."(.-)"..string.char(0xEF,0x25,0x25,0x28))
 end
 
 windower.register_event('zone change',function()
-    flag=false
+    linkshell_inventories_loaded = false
 end)
 
-windower.register_event('incoming chunk',function(id)
-    if id == 0x1D then
-        flag = true
+windower.register_event('incoming chunk', function(id,org)
+    if not linkshell_inventories_loaded and id == 0x01D then
+        linkshell_inventories_loaded = bit.band(org:byte(0x09), 225) == 225
     end
 end)
 
 windower.register_event('outgoing chunk',function(id,org,mod,inj)
-    if id == 0xB5 and not inj and #chatmode>0 and mod:byte(5) == 0 then -- and org:unpack('z',7) == message
-        -- Not injected, message currently queued
-        local outpack = mod:sub(1,4)..string.char(table.remove(chatmode,1))..mod:sub(6)
-        return outpack
+    if id == 0xB5 and not inj and mod:byte(5) == 0 and #queue > 0 then
+        local pop_index, outpack = nil, nil
+        local msg = org:sub(6)
+        for i, v in pairs(queue) do
+            -- Not injected, message currently queued
+            if string.find(msg, v.message) then
+                outpack = mod:sub(1,4)..string.char(v.chatmode)..mod:sub(6)
+                if v.status == "seen" then
+                    pop_index = i
+                else
+                    v.status = "sent"
+                end
+                break
+            end
+        end
+        if pop_index then
+            table.remove(queue, pop_index)
+        end
+        if outpack then
+            return outpack
+        end
     end
 end)
 
 windower.register_event('incoming text',function(org, mod, col)
-    if message and #chatcolor>0 and string.find(org,translate_escape(message)) then
-        local a,b = string.find(mod,windower.ffxi.get_player().name)
-        mod = mod:sub(1,a-1)..'['..(chatcolor[1]==6 and '1' or '2')..']<'..mod:sub(a,b)..'>'..mod:sub(b+3)
-        local retarr = {mod, table.remove(chatcolor,1)}
-        message = nil
-        return unpack(retarr)
+    if #queue > 0 then
+        local player = windower.ffxi.get_player()
+        if not player or not player.name then
+            return
+        end
+        local a,b = string.find(mod,player.name)
+        if a == nil then
+            return
+        end
+        local pop_index, retarr = nil, nil
+        for i,v in pairs(queue) do
+            if string.find(org,translate_escape(v.message)) then
+                mod = mod:sub(1,a-1)..'['..(v.chatcolor==6 and '1' or '2')..']<'..mod:sub(a,b)..'>'..mod:sub(b+3)
+                retarr = {mod, v.chatcolor}
+                if v.status == "sent" then
+                    pop_index = i
+                else
+                    v.status = "seen"
+                end
+                break
+            end
+        end
+        if pop_index then
+            table.remove(queue, pop_index)
+        end
+        if retarr then
+            return unpack(retarr)
+        end
     end
 end)
 
 windower.register_event('outgoing text',function(org,mod,bool)
-    if bool or flag then return end
+    if bool or linkshell_inventories_loaded then return end
+    local message
     if mod:sub(1,3) == '/l ' then
-        chatmode[#chatmode+1] = 0x05
-        chatcolor[#chatcolor+1] = 6
         message = mod:sub(4)
+        queue[#queue+1] = {
+            chatmode = 0x05,
+            chatcolor = 6,
+            message = message
+        }
     elseif mod:sub(1,11) == '/linkshell ' then
-        chatmode[#chatmode+1] = 0x05
-        chatcolor[#chatcolor+1] = 6
         message = mod:sub(12)
+        queue[#queue+1] = {
+            chatmode = 0x05,
+            chatcolor = 6,
+            message = message,
+        }
     elseif mod:sub(1,4) == '/l2 ' then
-        chatmode[#chatmode+1] = 0x1B
-        chatcolor[#chatcolor+1] = 213
         message = mod:sub(5)
+        queue[#queue+1] = {
+            chatmode = 0x1B,
+            chatcolor = 213,
+            message = message,
+        }
     elseif mod:sub(1,12) == '/linkshell2 ' then
-        chatmode[#chatmode+1] = 0x1B
-        chatcolor[#chatcolor+1] = 213
         message = mod:sub(13)
+        queue[#queue+1] = {
+            chatmode = 0x1B,
+            chatcolor = 213,
+            message = message,
+        }
     else
         return
     end
-    
     return '/s '..message
 end)

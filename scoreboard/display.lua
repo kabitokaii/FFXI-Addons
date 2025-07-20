@@ -109,7 +109,7 @@ function Display:build_scoreboard_header()
     if self.db:empty() then
         labels = '\n'
     else
-        labels = '%23s%7s%9s\n':format('Tot', 'Pct', 'DPS')
+        labels = '%32s%7s%9s\n':format('Tot', 'Pct', 'DPS')
     end
 
     local dps_status
@@ -201,7 +201,7 @@ function Display:update()
             else
                 percent = '(0%)'
             end
-            display_table:append('%-16s%7d%8s %7s':format(v[1], v[2], percent, dps))
+            display_table:append('%-25s%7.0f%8s %7s':format(v[1], v[2], percent, dps))
         end
         alli_damage = alli_damage + v[2] -- gather this even for players not displayed
         player_lines = player_lines + 1
@@ -230,7 +230,7 @@ end
 
 -- Takes a table of elements to be wrapped across multiple lines and returns
 -- a table of strings, each of which fits within one FFXI line.
-local function wrap_elements(elements, header, sep)
+local function wrap_elements(elements, header, alt, sep)
     local max_line_length = 120 -- game constant
     if not sep then
         sep = ', '
@@ -241,31 +241,43 @@ local function wrap_elements(elements, header, sep)
     local line_length
 
     local i = 1
-    while i <= #elements do
-        if not current_line then
-            current_line = T{}
-            line_length = header:len()
-            lines:append(current_line)
+    if not alt then
+        while i <= #elements do
+            if not current_line then
+                current_line = T{}
+                line_length = header:len()
+                lines:append(current_line)
+            end
+
+            local new_line_length = line_length + elements[i]:len() + sep:len()
+            if new_line_length > max_line_length then
+                current_line = T{}
+                lines:append(current_line)
+                new_line_length = elements[i]:len() + sep:len()
+            end
+
+            current_line:append(elements[i])
+            line_length = new_line_length
+            i = i + 1
         end
-
-        local new_line_length = line_length + elements[i]:len() + sep:len()
-        if new_line_length > max_line_length then
+        local baked_lines = lines:map(function (ls) return ls:concat(sep) end)
+        if header:len() > 0 and #baked_lines > 0 then
+            baked_lines[1] = header .. baked_lines[1]
+        end
+        return baked_lines
+    else
+        header_line = T{}
+        header_line:append(header)
+        lines:append(header_line)
+        while i <= #elements do
             current_line = T{}
             lines:append(current_line)
-            new_line_length = elements[i]:len() + sep:len()
+            current_line:append(elements[i])
+            i = i + 1
         end
-
-        current_line:append(elements[i])
-        line_length = new_line_length
-        i = i + 1
+        local baked_lines = lines:map(function (ls) return ls:concat(' ') end)
+        return baked_lines
     end
-
-    local baked_lines = lines:map(function (ls) return ls:concat(sep) end)
-    if header:len() > 0 and #baked_lines > 0 then
-        baked_lines[1] = header .. baked_lines[1]
-    end
-
-    return baked_lines
 end
 
 
@@ -283,12 +295,13 @@ function Display:report_summary (...)
 
     local elements = T{}
     for k, v in pairs(damage_table) do
-        elements:append('%s %d(%.1f%%)':format(v[1], v[2], 100 * v[2]/total_damage))
+        elements:append('%s %.0f(%.1f%%)':format(v[1], v[2], 100 * v[2]/total_damage))
     end
 
     -- Send the report to the specified chatmode
     slow_output(build_input_command(chatmode, tell_target),
-                wrap_elements(elements:slice(1, self.settings.numplayers), 'Dmg: '), self.settings.numplayers)
+                wrap_elements(elements, 'Damage: ', self.settings.oneperline),
+                self.settings.numplayers)
 end
 
 -- This is a table of the line aggregators and related utilities
@@ -395,7 +408,7 @@ function Display:report_stat(stat, args)
         end)
 
         -- Send the report to the specified chatmode
-        local wrapped = wrap_elements(elements:slice(1, self.settings.numplayers):map(function (p) return p[2] end), header)
+        local wrapped = wrap_elements(elements:slice(1, self.settings.numplayers):map(function (p) return p[2] end), header, self.settings.oneperline)
         slow_output(build_input_command(args.chatmode, args.telltarget), wrapped, self.settings.numplayers)
     end
 end
@@ -413,7 +426,7 @@ end
 return Display
 
 --[[
-Copyright © 2013-2014, Jerry Hebert
+Copyright Â© 2013-2014, Jerry Hebert
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

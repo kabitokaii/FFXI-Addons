@@ -7,7 +7,7 @@ function user_job_setup()
     state.IdleMode:options('Normal', 'PDT', 'Refresh')
 	state.HybridMode:options('Normal','DT')
 	state.ExtraMeleeMode = M{['description']='Extra Melee Mode', 'None', 'DWMax'}
-	state.Weapons:options('Default','Ranged','Savage','Evisceration','DualWeapons','DualSavageWeapons','DualEvisceration','DualLeadenRanged','DualLeadenMelee','DualAeolian','DualLeadenMeleeAcc','DualRanged','DualProcWeapons','None')
+	state.Weapons:options('DualSavageWeapons','DualLeadenRanged','DualLeadenMelee','DualAeolian','Default','Ranged','Savage','Evisceration','DualWeapons','DualEvisceration','DualLeadenRanged','DualLeadenMelee','DualAeolian','DualLeadenMeleeAcc','DualRanged','DualProcWeapons','None')
 	state.CompensatorMode:options('Always','300','1000','Never')
 
     gear.RAbullet = "Living Bullet"
@@ -348,8 +348,8 @@ function init_gear_sets()
     
     -- Normal melee group
     sets.engaged = {
-		head="Dampening Tam",neck="Iskur Gorget",ear1="Cessance Earring",ear2="Telos Earring",
-		body="Meg. Cuirie +2",hands="Adhemar Wrist. +1",ring1="Petrov Ring",ring2="Epona's Ring",
+		head="Adhemar Bonnet +1",neck="Iskur Gorget",ear1="Cessance Earring",ear2="Telos Earring",
+		body="Malignance Tabard",hands="Adhemar Wrist. +1",ring1="Petrov Ring",ring2="Epona's Ring",
 		back=gear.tp_jse_back,waist="Windbuffet Belt +1",legs="Samnuha Tights",feet="Herculean Boots"}
     
     sets.engaged.Acc = {
@@ -368,7 +368,7 @@ function init_gear_sets()
         back=gear.tp_jse_back,waist="Olseni Belt",legs="Malignance Tights",feet="Malignance Boots"}
 
     sets.engaged.DW = {
-		head="Dampening Tam",neck="Sanctity Necklace",ear1="Eabani Earring",ear2="Telos Earring",
+		 head={ name="Adhemar Bonnet +1", augments={'STR+12','DEX+12','Attack+20',}},neck="Sanctity Necklace",ear1="Eabani Earring",ear2="Telos Earring",
 		body={ name="Adhemar Jacket +1", augments={'DEX+12','AGI+12','Accuracy+20',}},hands="Adhemar Wrist. +1",ring1="Petrov Ring",ring2="Chirich Ring +1",
 		back=gear.tp_jse_back,waist="Reiki Yotai",legs="Samnuha Tights",feet="Herculean Boots"}
     
