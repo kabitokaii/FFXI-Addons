@@ -291,7 +291,7 @@ function init_gear_sets()
     -- Idle sets
     sets.idle = {ammo=gear.RAbullet,
         head="Nyame Helm",neck="Loricate Torque +1",ear1="Genmei Earring",ear2="Sanare Earring",
-        body="Nyame Mail",hands="Nyame Gauntlets",ring1="Defending Ring",ring2="Shadow Ring",
+        body="Nyame Mail",hands="Nyame Gauntlets",ring1="Defending Ring",ring2="Archon Ring",
         back="Moonbeam Cape",waist="Carrier's Sash",legs="Carmine Cuisses +1",feet="Nyame Sollerets"}
 		
     sets.idle.PDT = {ammo=gear.RAbullet,
@@ -312,12 +312,12 @@ function init_gear_sets()
 
     sets.defense.MDT = {ammo=gear.RAbullet,
         head="Nyame Helm",neck="Warder's Charm +1",ear1="Etiolation Earring",ear2="Sanare Earring",
-        body="Nyame Mail",hands="Nyame Gauntlets",ring1="Defending Ring",ring2="Shadow Ring",
+        body="Nyame Mail",hands="Nyame Gauntlets",ring1="Defending Ring",ring2="Archon Ring",
         back="Moonbeam Cape",waist="Carrier's Sash",legs="Nyame Flanchard",feet="Nyame Sollerets"}
 		
     sets.defense.MEVA = {ammo=gear.RAbullet,
         head="Nyame Helm",neck="Warder's Charm +1",ear1="Etiolation Earring",ear2="Sanare Earring",
-        body="Nyame Mail",hands="Nyame Gauntlets",ring1="Defending Ring",ring2="Shadow Ring",
+        body="Nyame Mail",hands="Nyame Gauntlets",ring1="Defending Ring",ring2="Archon Ring",
         back="Moonbeam Cape",waist="Carrier's Sash",legs="Nyame Flanchard",feet="Nyame Sollerets"}
 
     sets.Kiting = {legs="Carmine Cuisses +1"}
@@ -325,17 +325,18 @@ function init_gear_sets()
 	sets.DWMax = {ear1="Dudgeon Earring",ear2="Heartseeker Earring",body="Adhemar Jacket +1",hands="Floral Gauntlets",waist="Reiki Yotai"}
 
 	-- Weapons sets
+  sets.weapons.DualSavageWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Anarchy +2"}
+  sets.weapons.DualLeadenRanged = {main="Rostam",sub="Tauret",range="Death Penalty"}
+	sets.weapons.DualLeadenMelee = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Death Penalty"}
+	sets.weapons.DualAeolian = {main="Rostam",sub="Tauret",range="Death Penalty"}
+	sets.weapons.DualLeadenMeleeAcc = {main="Naegling",sub="Blurred Knife +1",range="Death Penalty"}
 	sets.weapons.Default = {main="Naegling",sub="Nusku Shield",range="Death Penalty"}
 	sets.weapons.Ranged = {main="Rostam",sub="Nusku Shield",range="Death Penalty"}
 	sets.weapons.Evisceration = {main="Tauret",sub="Nusku Shield",range="Anarchy +2"}
 	sets.weapons.DualWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Death Penalty"}
-	sets.weapons.DualSavageWeapons = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Anarchy +2"}
 	sets.weapons.DualEvisceration = {main="Tauret",sub="Blurred Knife +1",range="Anarchy +2"}
 	sets.weapons.Savage = {main="Naegling",sub="Nusku Shield",range="Anarchy +2"}
-	sets.weapons.DualLeadenRanged = {main="Rostam",sub="Tauret",range="Death Penalty"}
-	sets.weapons.DualLeadenMelee = {main="Naegling",sub={ name="Gleti's Knife", augments={'Path: A',}},range="Death Penalty"}
-	sets.weapons.DualAeolian = {main="Rostam",sub="Tauret",range="Death Penalty"}
-	sets.weapons.DualLeadenMeleeAcc = {main="Naegling",sub="Blurred Knife +1",range="Death Penalty"}
+
 	sets.weapons.DualRanged = {main="Rostam",sub="Kustawi +1",range="Death Penalty"}
     -- sets.weapons.Trials = {main="Bronze Knife",sub="Bronze Knife",range="Death Penalty"}
 	
