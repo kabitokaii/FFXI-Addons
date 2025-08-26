@@ -137,11 +137,23 @@
                 <4>AATT</4>
                 <5>Qultada</5>
             </htbm>
+            <leveling>
+                <1>Kupofried</1>
+                <2>Semih Lafihna</2>
+                <3>Shantotto II</3>
+                <4>Monberaux</4>
+            </leveling>
             <lil>
                 <1>Koru-Moru</1>
                 <2>Ajido-Marujido</2>
-                <3>August</3>
+                <3>King of Hearts</3>
             </lil>
+            <lowlevel>
+                <1>Valaineral</1>
+                <2>Monberaux</2>
+                <3>Kupofried</3>
+                <4>King of Hearts</4>
+            </lowlevel>
             <matp>
                 <1>Valaineral</1>
                 <2>Matsui-P</2>
@@ -225,6 +237,11 @@
                 <4>Yoran-Oran (UC)</4>
                 <5>Qultada</5>
             </thf>
+            <trials>
+                <1>Monberaux</1>
+                <2>Koru-Moru</2>
+                <3>Pieuje (UC)</3>
+            </trials>
             <uma>
                 <1>Monberaux</1>
                 <2>Koru-Moru</2>

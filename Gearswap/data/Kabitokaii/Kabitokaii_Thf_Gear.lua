@@ -58,7 +58,7 @@ function init_gear_sets()
 	sets.Ambush = {} --body="Plunderer's Vest +1"
 	
 	-- Weapons sets
-	sets.weapons.Aeneas = {main="Aeneas",sub="Gleti's Knife"}
+	sets.weapons.Aeneas = {main="Aeneas"}
 	sets.weapons.Aeolian = {main="Malevolence",sub="Malevolence"}
 	sets.weapons.Savage = {main="Naegling",sub="Gleti's Knife"}
 	sets.weapons.ProcWeapons = {main="Blurred Knife +1",sub="Atoyac"}

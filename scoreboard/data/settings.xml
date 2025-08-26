@@ -69,6 +69,11 @@
         <visible>false</visible>
     </global>
     <kabitokaii>
-        <visible>true</visible>
+        <display>
+            <pos>
+                <x>623</x>
+                <y>161</y>
+            </pos>
+        </display>
     </kabitokaii>
 </settings>

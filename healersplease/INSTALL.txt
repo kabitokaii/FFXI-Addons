@@ -1,0 +1,66 @@
+HealersPlease Addon - File Summary
+===================================
+
+Created Files:
+--------------
+1. healersplease.lua - Main addon file
+2. healdb.lua - Healing database management
+3. player.lua - Player healing data tracking
+4. mergedplayer.lua - Combined player data across targets
+5. hpsclock.lua - Healing time tracking clock
+6. display.lua - Display and reporting functionality
+7. readme.txt - Documentation
+
+Key Features Implemented:
+------------------------
+- Real-time healing tracking for alliance members
+- HPS (Healing Per Second) calculation
+- Healing statistics (average, range, critical rate, etc.)
+- Target filtering system
+- Report functionality to party/linkshell
+- Configurable display options
+- Pet healing tracking with owner attribution options
+
+Commands Available:
+------------------
+//hp help - Show help
+//hp pos <x> <y> - Position display
+//hp reset - Reset data
+//hp report [target] - Report healing
+//hp reportstat <stat> [player] [target] - Report specific stat
+//hp stat <stat> [player] - Show stat
+//hp filter add/clear/show - Manage target filters
+//hp visible - Toggle visibility
+//hp set <flag> <value> - Configure settings
+
+Healing Message IDs Tracked:
+----------------------------
+- 7: Standard healing spell
+- 24: Cure critical
+- 103: Healing magic effect
+- 102: Blue magic healing
+- 238: Status recovery spell
+- Plus general HP gain effects
+
+Configuration Options:
+---------------------
+- CombinePets: Combine pet healing under "Pets"
+- NumPlayers: Number of players to display
+- BGTransparency: Background transparency
+- Font: Display font
+- HPColor: Chat output color
+- ShowAlliHealing: Show alliance total HPS
+- ResetFilters: Reset filters on data reset
+- ShowFellow: Include fellow in tracking
+- OnePerLine: Report format option
+- CompactSC: Compact skillchain display
+- CreditPetHealingToOwner: Credit pet healing to owner
+
+The addon is functionally complete and ready for use. The linter warnings about windower.register_event appear to be false positives as this syntax is used throughout the Windower addon ecosystem including the original Scoreboard addon.
+
+Installation:
+Place the healersplease folder in your Windower4/addons directory and load with:
+//lua load healersplease
+
+Usage:
+The addon will automatically start tracking healing when in combat. Use //hp help for all available commands.

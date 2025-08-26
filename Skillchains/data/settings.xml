@@ -59,6 +59,9 @@
                 <x>1996</x>
                 <y>784</y>
             </pos>
+            <text>
+                <size>8</size>
+            </text>
         </display>
     </kabitokaii>
 </settings>

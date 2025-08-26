@@ -787,11 +787,11 @@ function check_favor()
 	if state.AutoFavor.value and pet.isvalid and not buffactive["Avatar's Favor"] and not (buffactive.amnesia or buffactive.impairment) then
 		local abil_recasts = windower.ffxi.get_ability_recasts()
 		
-		if abil_recasts[176] < latency then
-			windower.chat.input('/pet "Avatar\'s Favor" <me>')
-			tickdelay = os.clock() + 1.1
-			return true
-		end
+		-- if abil_recasts[176] < latency then
+		-- 	windower.chat.input('/pet "Avatar\'s Favor" <me>')
+		-- 	tickdelay = os.clock() + 1.1
+		-- 	return true
+		-- end
 	end
 	return false
 end

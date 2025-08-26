@@ -690,6 +690,48 @@ function handle_autows(cmdParams)
 	end
 end
 
+function handle_autowsmode(cmdParams)
+	if #cmdParams == 0 then
+		if state.AutoWSMode then
+			add_to_chat(122,'AutoWS Mode is currently '..state.AutoWSMode.current..'.')
+		else
+			add_to_chat(123,'AutoWSMode state not defined. Please define state.AutoWSMode in your job file.')
+		end
+	elseif cmdParams[1]:lower() == 'on' then
+		if state.AutoWSMode then
+			local oldVal = state.AutoWSMode.value
+			state.AutoWSMode:set(true)
+			local newVal = state.AutoWSMode.value
+			
+			if state_change then
+				state_change('AutoWSMode', newVal, oldVal)
+			end
+			
+			add_to_chat(122,'AutoWS Mode is now '..state.AutoWSMode.current..'.')
+			if state.DisplayMode.value then update_job_states() end
+		else
+			add_to_chat(123,'AutoWSMode state not defined. Please define state.AutoWSMode in your job file.')
+		end
+	elseif cmdParams[1]:lower() == 'off' then
+		if state.AutoWSMode then
+			local oldVal = state.AutoWSMode.value
+			state.AutoWSMode:set(false)
+			local newVal = state.AutoWSMode.value
+			
+			if state_change then
+				state_change('AutoWSMode', newVal, oldVal)
+			end
+			
+			add_to_chat(122,'AutoWS Mode is now '..state.AutoWSMode.current..'.')
+			if state.DisplayMode.value then update_job_states() end
+		else
+			add_to_chat(123,'AutoWSMode state not defined. Please define state.AutoWSMode in your job file.')
+		end
+	else
+		add_to_chat(123,'Invalid parameter. Use: gs c autowsmode on/off')
+	end
+end
+
 function handle_autofood(cmdParams)
 	if #cmdParams == 0 then
 		add_to_chat(122,'You must specify a food to automatically eat.')
@@ -1089,6 +1131,7 @@ selfCommandMaps = {
 	['quietdisable']	= handle_quietdisable,
 	['autonuke'] 		= handle_autonuke,
 	['autows'] 			= handle_autows,
+	['autowsmode']		= handle_autowsmode,
 	['autofood']		= handle_autofood,
 	['facemob']			= handle_facemob,
     ['test']        	= handle_test,

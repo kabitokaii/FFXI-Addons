@@ -8,7 +8,7 @@ function user_job_setup()
 	state.MagicalDefenseMode:options('MDT')
 	state.ResistDefenseMode:options('MEVA')
     state.IdleMode:options('Normal')
-	state.Weapons:options('Dojikiri','ShiningOne','ProcWeapon','Bow')
+	state.Weapons:options('Dojikiri','ShiningOne','ProcWeapon','Yoichinoyumi')
 
 	gear.ws_jse_back = {name="Smertrios's Mantle", augments={'STR+20','Accuracy+20 Attack+20','STR+10','Weapon skill damage +10%','Damage taken-5%',}}
 	gear.stp_jse_back = {name="Smertrios's Mantle", augments={'DEX+20','Accuracy+20 Attack+20','Accuracy+10','"Store TP"+10','Damage taken-5%',}}
@@ -302,19 +302,21 @@ function init_gear_sets()
 
 	-- Weapons sets
 	sets.weapons.Dojikiri = {main="Dojikiri Yasutsuna",sub="Khonsu"}
-    sets.weapons.ShiningOne = {main="Shining One",sub="Khonsu"}
+  sets.weapons.ShiningOne = {main="Shining One",sub="Khonsu"}
 	sets.weapons.ProcWeapon = {main="Norifusa +1",sub="Bloodrain Strap"}
-	sets.weapons.Bow = {main="Norifusa +1",sub="Khonsu",range="Hangaku-no-Yumi",ammo="Eminent Arrow"}
-	
+	sets.weapons.Yoichinoyumi = {range="Yoichinoyumi",ammo="Eminent Arrow"}
+
+  
+
 	-- Buff sets
 	sets.Cure_Received = {hands="Buremte Gloves",waist="Gishdubar Sash",legs="Flamma Dirs +2"}
 	sets.buff.Doom = set_combine(sets.buff.Doom, {})
 	sets.buff.Sleep = {neck="Vim Torque +1"}
 	sets.buff.Hasso = {hands="Wakido Kote +2"}
 	sets.buff['Third Eye'] = {} --legs="Sakonji Haidate +2"
-    sets.buff.Sekkanoki = {hands="Kasuga Kote +1"}
-    sets.buff.Sengikori = {feet="Kas. Sune-Ate +1"}
-    sets.buff['Meikyo Shisui'] = {feet="Sak. Sune-Ate +1"}
+  sets.buff.Sekkanoki = {hands="Kasuga Kote +1"}
+  sets.buff.Sengikori = {feet="Kas. Sune-Ate +1"}
+  sets.buff['Meikyo Shisui'] = {feet="Sak. Sune-Ate +1"}
 end
 
 -- Select default macro book on initial load or subjob change.
@@ -372,3 +374,5 @@ end
 function user_job_lockstyle()
     windower.chat.input('/lockstyleset 011')
 end
+
+autows_list = {['Dojikiri']='Tachi: Shoha',['ShiningOne']='Impulse Drive',['Yoichinoyumi']='Namas Arrow'}
